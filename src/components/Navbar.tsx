@@ -1,9 +1,27 @@
-function Navbar() {
+interface NavbarProps {
+  currentTab: string;
+  setCurrentTab: (tab: string) => void;
+}
+
+function Navbar({ currentTab, setCurrentTab }: NavbarProps) {
+  const tabs = ['home', 'projects', 'experience', 'contact'];
+
   return (
-    <section id="navbar" style={{ padding: '4rem 2rem' }}>
-      <h2>Navbar</h2>
-      <p>navbarnavbarnavbarnavbarnavbar</p>
-    </section>
+    <nav className="navbar">
+      <div className="navbar-logo">My Portfolio</div>
+      <ul className="navbar-links">
+        {tabs.map((tab) => (
+          <li key={tab}>
+            <button
+              onClick={() => setCurrentTab(tab)}
+              className={`nav-button ${currentTab === tab ? 'active' : ''}`}
+            >
+              {tab.toUpperCase()}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
