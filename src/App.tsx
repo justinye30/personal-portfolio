@@ -6,10 +6,8 @@ import Experience from './sections/Experience';
 import Contact from './sections/Contact';
 
 function App() {
-  // Set the default view to 'home'
   const [currentTab, setCurrentTab] = useState('home');
 
-  // Helper function to figure out which component to display
   const renderSection = () => {
     switch (currentTab) {
       case 'home':
@@ -26,11 +24,9 @@ function App() {
   };
 
   return (
-    <div style={{ fontFamily: 'sans-serif', minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
-      {/* Pass the state and setter function down to the Navbar */}
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
       <Navbar currentTab={currentTab} setCurrentTab={setCurrentTab} />
       
-      {/* Render the selected section area */}
       <main style={{ padding: '2rem' }}>
         {renderSection()}
       </main>

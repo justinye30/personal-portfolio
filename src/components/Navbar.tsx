@@ -8,7 +8,6 @@ function Navbar({ currentTab, setCurrentTab }: NavbarProps) {
 
   return (
     <nav className="navbar">
-      <div className="navbar-logo">My Portfolio</div>
       <ul className="navbar-links">
         {tabs.map((tab) => (
           <li key={tab}>
