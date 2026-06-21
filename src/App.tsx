@@ -24,7 +24,7 @@ function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <div style={{ minHeight: '100vh'}}>
       <Navbar currentTab={currentTab} setCurrentTab={setCurrentTab} />
       
       <main style={{ padding: '2rem' }}>
