@@ -11,7 +11,7 @@ body {
 main {
   padding: 2rem;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 /* Navbar Layout */
@@ -55,4 +55,19 @@ main {
   font-weight: bold;
   color: #f0f0f0;
   border-bottom: 2px solid #f0f0f0;
+}
+
+h1 {
+  font-size: 7rem;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 3rem;
+  color: #ffffff;
+}
+
+p {
+  font-size: 1.75rem;
+  line-height: 1.4;
 }
