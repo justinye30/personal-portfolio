@@ -27,7 +27,7 @@ function App() {
     <div style={{ minHeight: '100vh'}}>
       <Navbar currentTab={currentTab} setCurrentTab={setCurrentTab} />
       
-      <main style={{ padding: '2rem' }}>
+      <main>
         {renderSection()}
       </main>
     </div>
