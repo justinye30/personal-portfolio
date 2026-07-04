@@ -41,24 +41,20 @@ function Projects() {
       <div className="projects-grid">
         {projectData.map((project) => (
           <div key={project.id} className="project-card">
-            {/* Top Image Banner */}
             <div className="project-image-placeholder">
               <span>IMAGE PLACEHOLDER</span>
             </div>
 
-            {/* Card Content Details */}
             <div className="project-details">
               <h2 className="project-card-title">{project.title}</h2>
               <p className="project-card-text">{project.description}</p>
               
-              {/* Tech Tags */}
               <div className="project-tags">
                 {project.tags.map((tag, idx) => (
                   <span key={idx} className="tag">{tag}</span>
                 ))}
               </div>
 
-              {/* Action Buttons */}
               <div className="project-buttons">
                 <a href={project.githubUrl} className="btn btn-github">GitHub</a>
                 {project.demoUrl && (
