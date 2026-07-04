@@ -290,31 +290,22 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: Arial, sans-serif;
-  font-size: 1.25rem;
-  font-weight: bold;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .contact-icon-image {
   width: 24px;
   height: 24px;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
-.badge-email {
-  background-color: #2563eb;
-  color: #ffffff;
-}
-
-.badge-linkedin {
-  background-color: #3b82f6;
-  color: #ffffff;
-}
-
+.badge-email,
+.badge-linkedin,
 .badge-github {
-  background-color: #60a5fa;
-  color: #121212;
+  background-color: transparent !important;
+  border: 2px solid #ffffff;
 }
 
 .contact-link {

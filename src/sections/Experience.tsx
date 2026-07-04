@@ -6,7 +6,6 @@ interface Job {
 }
 
 function Experience() {
-  // Using placeholders matching your sketch layout
   const jobHistory: Job[] = [
     {
       id: 1,
@@ -29,10 +28,8 @@ function Experience() {
       <div className="experience-list">
         {jobHistory.map((job) => (
           <div key={job.id} className="job-card">
-            {/* Top Company Title */}
             <h2 className="job-company">{job.company}</h2>
             
-            {/* Horizontal Flex Group for Logo and Text */}
             <div className="job-content">
               <div className="job-logo-placeholder">
                 <span>Logo</span>
