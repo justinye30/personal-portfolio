@@ -1,8 +1,50 @@
+interface Job {
+  id: number;
+  company: string;
+  role: string;
+  duration: string;
+}
+
 function Experience() {
+  // Using placeholders matching your sketch layout
+  const jobHistory: Job[] = [
+    {
+      id: 1,
+      company: "Sharkbyte",
+      role: "Software Development Intern",
+      duration: "May 2022 - August 2022",
+    },
+    {
+      id: 2,
+      company: "Tech Retro Corp",
+      role: "Junior Full-Stack Engineer",
+      duration: "September 2022 - Present",
+    },
+  ];
+
   return (
-    <section id="experience" style={{ padding: '4rem 1.5rem' }}>
-      <h2>My Experience</h2>
-      <p>Job cards will go here!</p>
+    <section id="experience">
+      <h1 className="experience-title">My Experience</h1>
+      
+      <div className="experience-list">
+        {jobHistory.map((job) => (
+          <div key={job.id} className="job-card">
+            {/* Top Company Title */}
+            <h2 className="job-company">{job.company}</h2>
+            
+            {/* Horizontal Flex Group for Logo and Text */}
+            <div className="job-content">
+              <div className="job-logo-placeholder">
+                <span>Logo</span>
+              </div>
+              <div className="job-details">
+                <h3 className="job-role">{job.role}</h3>
+                <p className="job-date">{job.duration}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
