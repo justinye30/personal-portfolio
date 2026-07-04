@@ -1,9 +1,13 @@
+import emailIcon from '../assets/icon-email.png';
+import githubIcon from '../assets/icon-github.png';
+import linkedinIcon from '../assets/icon-linkedin.png';
+
 interface ContactMethod {
   id: number;
   type: string;
   label: string;
   url: string;
-  icon: string;
+  iconImg: string;
 }
 
 function Contact() {
@@ -11,23 +15,23 @@ function Contact() {
     {
       id: 1,
       type: "email",
-      label: "justin.example@gmail.com",
-      url: "mailto:justin.example@gmail.com",
-      icon: "✉",
+      label: "justinye787@gmail.com",
+      url: "mailto:justinye787@gmail.com",
+      iconImg: emailIcon,
     },
     {
       id: 2,
       type: "linkedin",
-      label: "linkedin.com/in/justin-example/",
-      url: "https://linkedin.com/in/justin-example/",
-      icon: "in",
+      label: "linkedin.com/in/justin-ye0",
+      url: "https://www.linkedin.com/in/justin-ye0/",
+      iconImg: linkedinIcon,
     },
     {
       id: 3,
       type: "github",
-      label: "github.com/justin-example",
-      url: "https://github.com/justin-example",
-      icon: "🐙",
+      label: "github.com/justinye30",
+      url: "https://github.com/justinye30",
+      iconImg: githubIcon,
     },
   ];
 
@@ -39,7 +43,11 @@ function Contact() {
         {contactLinks.map((link) => (
           <div key={link.id} className="contact-item">
             <div className={`contact-icon-badge badge-${link.type}`}>
-              <span>{link.icon}</span>
+              <img 
+                src={link.iconImg} 
+                alt={`${link.type} icon`} 
+                className="contact-icon-image"
+              />
             </div>
             
             <a 

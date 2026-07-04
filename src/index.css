@@ -296,6 +296,12 @@ p {
   flex-shrink: 0;
 }
 
+.contact-icon-image {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .badge-email {
   background-color: #2563eb;
   color: #ffffff;
