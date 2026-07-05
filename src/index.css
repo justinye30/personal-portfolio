@@ -100,30 +100,19 @@ p {
   }
 }
 
-/* Card Container: Styled like a portable retro console frame */
 .retro-console-card {
-  background-color: #22222b; /* Slightly warmer gray shell */
-  border: 4px solid #333344;
-  border-radius: 18px; /* Rounded corners matching your sketch */
+  background-color: #cccac3;
+  border: 4px solid #7e7b73;
+  border-radius: 18px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  box-shadow: 0 8px 0 0 #13131a; /* Thick 8-bit shadow depth underneath */
+  box-shadow: 0 8px 0 0 #4d4b48;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* 1. Retro Television/Monitor Screen Section */
-.console-screen {
-  background-color: #31313d; /* Bezel frame background */
-  padding: 0.75rem;
-  border-radius: 12px;
-  border: 2px solid #1a1a24;
-}
-
 .screen-inner {
-  background-color: #0f1015; /* Dark glass screen backdrop */
-  border: 3px solid #1c1c24;
   border-radius: 6px;
   height: 160px;
   display: flex;
@@ -131,7 +120,6 @@ p {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8); /* Inner screen recess shade */
 }
 
 .screen-image {
@@ -140,14 +128,12 @@ p {
   object-fit: cover;
 }
 
-/* Outer Shell Controls Layout */
 .console-controls {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
 
-/* 2. Header Alignment: Name next to Link Button */
 .console-header-row {
   display: flex;
   justify-content: flex-start;
@@ -158,7 +144,7 @@ p {
 .console-card-title {
   font-size: 1.75rem !important;
   margin: 0;
-  color: #ffffff;
+  color: #4d4b48;
 }
 
 .console-github-icon-img {
@@ -166,40 +152,36 @@ p {
   height: 24px;
   padding-left: 12px;
   object-fit: contain;
-  filter: invert(1) brightness(0.5);
+  filter: invert(1) brightness(0.4);
 }
 
 .console-github-icon:hover {
-  filter: brightness(2);
+  filter: brightness(0);
   transition: filter 0.2s ease;
 }
 
-/* 3. Description Block */
 .console-card-text {
   font-size: 1.15rem !important;
   line-height: 1.4;
   margin: 0 0 1.5rem 0;
-  color: #b3b3c2;
+  color: #4d4b48;
   flex-grow: 1;
 }
 
-/* 4. Game Console Buttons Grid (Tags) */
 .console-buttons-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2x2 grid structure like console actions */
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
   margin-top: auto;
 }
 
-/* 3D Beveled Button Look */
 .console-btn-tag {
-  background-color: #3a3a4a;
-  border: 2px solid #1a1a24;
-  border-bottom-width: 5px; /* Creates button thickness depth */
+  background-color: #a72f43;
+  border: 2px solid #31302e;
+  border-bottom-width: 3px;
   border-radius: 6px;
   padding: 0.4rem;
   text-align: center;
-  transition: all 0.1s ease;
   user-select: none;
 }
 
@@ -209,7 +191,7 @@ p {
   color: #e2e2ec;
   letter-spacing: 0.5px;
   display: block;
-  text-shadow: 1px 1px 0px #1a1a24;
+  text-shadow: 1px 1px 0px #31302e;
 }
 
 /* Experience Section */

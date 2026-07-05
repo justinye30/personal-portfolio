@@ -1,4 +1,4 @@
-import sampleWhite from '../assets/white.jpg';
+import sampleWhite from '../assets/SQUARE.jpg';
 import githubIconImg from '../assets/icon-github.png';
 
 interface Project {
@@ -46,10 +46,8 @@ function Projects() {
         {projectData.map((project) => (
           <div key={project.id} className="retro-console-card">
             
-            <div className="console-screen">
-              <div className="screen-inner">
-                <img src={project.imageUrl} alt={project.title} className="screen-image" />
-              </div>
+            <div className="screen-inner">
+              <img src={project.imageUrl} alt={project.title} className="screen-image" />
             </div>
 
             <div className="console-controls">
