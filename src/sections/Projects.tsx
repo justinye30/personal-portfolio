@@ -50,7 +50,7 @@ function Projects() {
             
             <div className="console-screen-bezel">
                 <div className="screen-inner">
-                <img src={project.imageUrl} alt={project.title} className="screen-image" />
+                    <img src={project.imageUrl} alt={project.title} className="screen-image" />
                 </div>
             </div>
 

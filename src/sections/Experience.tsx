@@ -1,8 +1,12 @@
+import developforgood from '../assets/develop-for-good-logo.jpg';
+import sharkbyte from '../assets/sharkbyte-logo.png';
+
 interface Job {
   id: number;
   company: string;
   role: string;
   duration: string;
+  imageUrl: string;
 }
 
 function Experience() {
@@ -12,12 +16,14 @@ function Experience() {
       company: "Sharkbyte",
       role: "Software Development Intern",
       duration: "May 2022 - August 2022",
+      imageUrl: sharkbyte,
     },
     {
       id: 2,
       company: "Tech Retro Corp",
       role: "Junior Full-Stack Engineer",
       duration: "September 2022 - Present",
+      imageUrl: developforgood,
     },
   ];
 
@@ -31,8 +37,8 @@ function Experience() {
             <h2 className="job-company">{job.company}</h2>
             
             <div className="job-content">
-              <div className="job-logo-placeholder">
-                <span>Logo</span>
+              <div className="job-logo">
+                <img src={job.imageUrl} alt={job.company} className="logo-image" />
               </div>
               <div className="job-details">
                 <h3 className="job-role">{job.role}</h3>
