@@ -110,6 +110,11 @@ p {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.retro-console-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 17px 0 0 #4d4b48;
+}
+
 .console-screen-bezel {
   background-color: #7e7b73;
   padding: 1rem 1rem 1.2rem 1rem;
