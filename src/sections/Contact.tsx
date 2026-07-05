@@ -37,7 +37,7 @@ function Contact() {
 
   return (
     <section id="contact">
-      <h1 className="contact-title">Contact Me</h1>
+      <h1 className="contact-title">Contact Me!</h1>
       
       <div className="contact-list">
         {contactLinks.map((link) => (
