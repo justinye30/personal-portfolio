@@ -226,7 +226,7 @@ p {
   background-color: #c0beb6;
   border: 5px solid #4d4b48;
   border-radius: 8px;
-  padding: 2.5rem 2rem 3rem;
+  padding: 2.4rem 2rem 2.9rem;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -242,25 +242,22 @@ p {
 
 .job-company {
   font-size: 2.5rem !important;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.8rem 0;
   color: #4d4b48;
 }
 
 .job-content {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .job-logo {
-  width: 80px;
-  height: 80px;
-  min-width: 80px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
 }
 
 .logo-image {
@@ -284,7 +281,7 @@ p {
 .job-date {
   font-size: 1.5rem !important;
   margin: 0;
-  color: #85827c;
+  color: #817e78;
 }
 
 /* Contact Section */

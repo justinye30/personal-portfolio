@@ -13,17 +13,17 @@ function Experience() {
   const jobHistory: Job[] = [
     {
       id: 1,
-      company: "Sharkbyte",
-      role: "Software Development Intern",
-      duration: "May 2022 - August 2022",
-      imageUrl: sharkbyte,
+      company: "Develop For Good",
+      role: "Technical Manager",
+      duration: "May 2026 - August 2026",
+      imageUrl: developforgood,
     },
     {
       id: 2,
-      company: "Tech Retro Corp",
-      role: "Junior Full-Stack Engineer",
-      duration: "September 2022 - Present",
-      imageUrl: developforgood,
+      company: "Sharkbyte",
+      role: "Software Development Intern",
+      duration: "June 2024 - July 2024",
+      imageUrl: sharkbyte,
     },
   ];
 
