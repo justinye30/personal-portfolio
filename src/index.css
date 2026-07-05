@@ -84,6 +84,7 @@ p {
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  padding: 0rem 0rem 3rem;
   gap: 2rem;
   width: 100%;
 }
@@ -99,95 +100,115 @@ p {
   }
 }
 
-.project-card {
-  background-color: #1a1a1a;
-  border: 2px solid #333333;
-  border-radius: 8px;
-  overflow: hidden;
+/* Card Container: Styled like a portable retro console frame */
+.retro-console-card {
+  background-color: #22222b; /* Slightly warmer gray shell */
+  border: 4px solid #333344;
+  border-radius: 18px; /* Rounded corners matching your sketch */
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  gap: 1.25rem;
+  box-shadow: 0 8px 0 0 #13131a; /* Thick 8-bit shadow depth underneath */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.project-card:hover {
-  border-color: #ffffff;
-  transform: translateY(-4px);
+/* 1. Retro Television/Monitor Screen Section */
+.console-screen {
+  background-color: #31313d; /* Bezel frame background */
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 2px solid #1a1a24;
 }
 
-.project-image-placeholder {
-  width: 100%;
-  height: 180px;
-  background-color: #252525;
-  border-bottom: 2px solid #333333;
+.screen-inner {
+  background-color: #0f1015; /* Dark glass screen backdrop */
+  border: 3px solid #1c1c24;
+  border-radius: 6px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666666;
-  font-size: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8); /* Inner screen recess shade */
 }
 
-.project-details {
-  padding: 1.5rem;
+.screen-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Outer Shell Controls Layout */
+.console-controls {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
 
-.project-card-title {
-  font-size: 2.25rem !important;
-  margin: 0 0 0.75rem 0;
+/* 2. Header Alignment: Name next to Link Button */
+.console-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.console-card-title {
+  font-size: 1.75rem !important;
+  margin: 0;
   color: #ffffff;
 }
 
-.project-card-text {
-  font-size: 1.5rem !important;
-  line-height: 1.3;
-  color: #aaaaaa !important;
+.console-github-icon {
+  color: #a3a2c9;
+  width: 28px;
+  height: 28px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.console-github-icon:hover {
+  color: #ffffff;
+  transform: scale(1.15) rotate(4deg);
+}
+
+/* 3. Description Block */
+.console-card-text {
+  font-size: 1.15rem !important;
+  line-height: 1.4;
   margin: 0 0 1.5rem 0;
+  color: #b3b3c2;
   flex-grow: 1;
 }
 
-.project-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+/* 4. Game Console Buttons Grid (Tags) */
+.console-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2x2 grid structure like console actions */
+  gap: 0.75rem;
+  margin-top: auto;
 }
 
-.tag {
-  background-color: #2a2a2a;
-  color: #cccccc;
-  border: 1px solid #444444;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 1.25rem;
-}
-
-.project-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn {
-  display: inline-block;
-  text-decoration: none;
-  font-family: inherit;
-  font-size: 1.5rem;
-  padding: 0.4rem 1rem;
-  border-radius: 4px;
+/* 3D Beveled Button Look */
+.console-btn-tag {
+  background-color: #3a3a4a;
+  border: 2px solid #1a1a24;
+  border-bottom-width: 5px; /* Creates button thickness depth */
+  border-radius: 6px;
+  padding: 0.4rem;
   text-align: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.1s ease;
+  user-select: none;
 }
 
-.btn-github, .btn-demo {
-  background-color: #3b82f6;
-  color: #ffffff;
-  border: none;
-}
-
-.btn-github:hover, .btn-demo:hover {
-  background-color: #2563eb;
+.btn-inner {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #e2e2ec;
+  letter-spacing: 0.5px;
+  display: block;
+  text-shadow: 1px 1px 0px #1a1a24;
 }
 
 /* Experience Section */
