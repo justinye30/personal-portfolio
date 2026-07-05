@@ -84,7 +84,7 @@ p {
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  padding: 0rem 0rem 3rem;
+  padding-bottom: 3rem;
   gap: 2rem;
   width: 100%;
 }
@@ -150,7 +150,7 @@ p {
 /* 2. Header Alignment: Name next to Link Button */
 .console-header-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 0.75rem;
 }
@@ -161,16 +161,17 @@ p {
   color: #ffffff;
 }
 
-.console-github-icon {
-  color: #a3a2c9;
-  width: 28px;
-  height: 28px;
-  transition: color 0.2s ease, transform 0.2s ease;
+.console-github-icon-img {
+  width: 24px;
+  height: 24px;
+  padding-left: 12px;
+  object-fit: contain;
+  filter: invert(1) brightness(0.5);
 }
 
 .console-github-icon:hover {
-  color: #ffffff;
-  transform: scale(1.15) rotate(4deg);
+  filter: brightness(2);
+  transition: filter 0.2s ease;
 }
 
 /* 3. Description Block */
