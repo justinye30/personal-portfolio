@@ -107,7 +107,7 @@ p {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 0 0 #4d4b48;
+  box-shadow: 0 13px 0 0 #4d4b48;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -175,10 +175,11 @@ p {
 }
 
 .console-buttons-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
   margin-top: auto;
+  justify-content: flex-start;
 }
 
 .console-btn-tag {
@@ -186,9 +187,10 @@ p {
   border: 2px solid #31302e;
   border-bottom-width: 3px;
   border-radius: 6px;
-  padding: 0.4rem;
+  padding: 0.4rem 0.9rem; 
   text-align: center;
   user-select: none;
+  width: fit-content;
 }
 
 .btn-inner {
