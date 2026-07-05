@@ -101,19 +101,26 @@ p {
 }
 
 .retro-console-card {
-  background-color: #cccac3;
+  background-color: #c7c5bd; /* Base light gray for the bottom controls */
   border: 4px solid #7e7b73;
   border-radius: 18px;
-  padding: 1.25rem;
+  overflow: hidden; /* Crucial: Clips the colored top section cleanly to the card's rounded corners */
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
   box-shadow: 0 8px 0 0 #4d4b48;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* ─── NEW: Top Screen Section (Distinct Background Color) ─── */
+.console-screen-bezel {
+  background-color: #7e7b73; /* Classic Game Boy dark-tinted screen surround */
+  padding: 1rem;
+}
+
 .screen-inner {
-  border-radius: 6px;
+  background-color: #ffffff; /* Inner screen background */
+  border: 3px solid #4d4b48;
+  border-radius: 8px;
   height: 200px;
   display: flex;
   align-items: center;
@@ -128,10 +135,12 @@ p {
   object-fit: cover;
 }
 
+/* ─── MODIFIED: Bottom Controls Section ─── */
 .console-controls {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  padding: 1.25rem 1.25rem 2rem 1.25rem; /* Padding applied here instead of the main card container */
 }
 
 .console-header-row {

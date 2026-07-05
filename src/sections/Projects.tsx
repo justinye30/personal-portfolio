@@ -47,35 +47,35 @@ function Projects() {
         {projectData.map((project) => (
           <div key={project.id} className="retro-console-card">
             
-            <div className="screen-inner">
-              <img src={project.imageUrl} alt={project.title} className="screen-image" />
+            <div className="console-screen-bezel">
+                <div className="screen-inner">
+                <img src={project.imageUrl} alt={project.title} className="screen-image" />
+                </div>
             </div>
 
             <div className="console-controls">
-
-              <div className="console-header-row">
+                <div className="console-header-row">
                 <h2 className="console-card-title">{project.title}</h2>
                 <a 
-                  href={project.githubUrl} 
-                  className="console-github-icon"
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  aria-label="View Source on GitHub"
+                    href={project.githubUrl} 
+                    className="console-github-icon"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    aria-label="View Source on GitHub"
                 >
-                  <img src={githubIconImg} alt="GitHub Link" className="console-github-icon-img" />
+                    <img src={githubIconImg} alt="GitHub Link" className="console-github-icon-img" />
                 </a>
-              </div>
+                </div>
 
-              <p className="console-card-text">{project.description}</p>
+                <p className="console-card-text">{project.description}</p>
 
-              <div className="console-buttons-grid">
+                <div className="console-buttons-grid">
                 {project.tags.map((tag, idx) => (
-                  <div key={idx} className="console-btn-tag">
+                    <div key={idx} className="console-btn-tag">
                     <span className="btn-inner">{tag}</span>
-                  </div>
+                    </div>
                 ))}
-              </div>
-
+                </div>
             </div>
           </div>
         ))}
