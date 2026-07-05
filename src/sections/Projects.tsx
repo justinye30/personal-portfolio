@@ -1,5 +1,6 @@
-import sampleWhite from '../assets/SQUARE.jpg';
 import stella from '../assets/stella.jpg';
+import yuha from '../assets/yuha.jpg';
+import stella2 from '../assets/stella2.jpg';
 import githubIconImg from '../assets/icon-github.png';
 
 interface Project {
@@ -19,7 +20,7 @@ function Projects() {
       description: "A full-stack web application designed to handle real-time data streaming and analysis with optimized queries.",
       tags: ["React", "TypeScript", "Vite", "Node.js"],
       githubUrl: "#",
-      imageUrl: sampleWhite,
+      imageUrl: yuha,
     },
     {
       id: 2,
@@ -27,7 +28,7 @@ function Projects() {
       description: "An elegant solution utilizing complex algorithms to maximize process efficiency across various data platforms.",
       tags: ["React", "Tailwind CSS", "PostgreSQL"],
       githubUrl: "#",
-      imageUrl: sampleWhite,
+      imageUrl: stella2,
     },
     {
       id: 3,
