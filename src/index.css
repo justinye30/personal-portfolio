@@ -15,7 +15,7 @@ main {
   margin: 0;
 }
 
-/* Navbar Layout */
+/* Navbar Section */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -36,7 +36,6 @@ main {
   padding: 0;
 }
 
-/* Navigation Buttons */
 .nav-button {
   background: none;
   border: none;
