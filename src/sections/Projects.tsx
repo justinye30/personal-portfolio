@@ -1,4 +1,5 @@
 import sampleWhite from '../assets/SQUARE.jpg';
+import stella from '../assets/stella.jpg';
 import githubIconImg from '../assets/icon-github.png';
 
 interface Project {
@@ -34,7 +35,7 @@ function Projects() {
       description: "Turning service APIs into a cohesive UI layout framework.",
       tags: ["TypeScript", "Express", "API Integration"],
       githubUrl: "#",
-      imageUrl: sampleWhite,
+      imageUrl: stella,
     },
   ];
 
