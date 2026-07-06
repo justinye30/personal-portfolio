@@ -35,10 +35,6 @@ p {
   text-shadow: 2px 2px 0px #2d3036;
 }
 
-.home-text {
-  text-shadow: 1px 1px 0px #2d3036;
-}
-
 .home-container {
   position: relative;
   min-height: 80vh;
@@ -49,6 +45,22 @@ p {
 .home-content {
   position: relative;
   z-index: 2;
+}
+
+.home-text h2 {
+  text-shadow: 1px 1px 0px #2d3036;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.typewriter-span {
+  display: inline-block;
+}
+
+.Typewriter__cursor {
+  color: #cad1df;
+  text-shadow: 1px 1px 0px #2d3036;
 }
 
 /* Navbar Section */

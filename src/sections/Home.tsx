@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import Typewriter from 'typewriter-effect';
 
 function Home() {
   useEffect(() => {
@@ -12,7 +13,26 @@ function Home() {
           <h1>Hi, I'm Justin!</h1>
         </div>
         <div className="home-text">
-          <h2>I'm a software engineer who's interested in full-stack development</h2>
+          <h2>
+            I'm a developer who's interested in{' '}
+            <span className="typewriter-span">
+              <Typewriter
+                options={{
+                  strings: [
+                    'full-stack development.',
+                    'machine learning.',
+                    'agentic systems.',
+                    'UX/UI.',
+                    'game development.',
+                  ],
+                  autoStart: true,
+                  loop: true,
+                  delay: 75,
+                  deleteSpeed: 50,
+                }}
+              />
+            </span>
+          </h2>
         </div>
       </div>
     </section>
