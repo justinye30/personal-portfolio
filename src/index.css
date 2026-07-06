@@ -63,7 +63,7 @@ body.home-page-body {
   height: 100%;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.2;
+  opacity: 0.18;
 }
 
 .bg-star {
