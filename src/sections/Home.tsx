@@ -10,7 +10,19 @@ function Home() {
     <section id="home" className="home-container">
       <div className="home-content">
         <div className="home-title">
-          <h1>Hi, I'm Justin!</h1>
+          <h1>
+            <Typewriter
+              onInit={(typewriter) => {
+                typewriter
+                  .typeString("Hi, I'm Justin!")
+                  .start();
+              }}
+              options={{
+                loop: false,
+                delay: 40,
+              }}
+            />
+          </h1>
         </div>
         <div className="home-text">
           <h2>
@@ -29,7 +41,7 @@ function Home() {
                   ],
                   autoStart: true,
                   loop: true,
-                  delay: 75,
+                  delay: 40,
                   deleteSpeed: 50,
                 }}
               />

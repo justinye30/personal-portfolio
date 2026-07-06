@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import githubIconImg from '../assets/icon-github.png';
+import Typewriter from 'typewriter-effect';
 
 interface Project {
   id: number;
@@ -44,7 +45,19 @@ function Projects() {
 
   return (
     <section id="projects">
-      <h1 className="projects-title">My Projects</h1>
+      <h1 className="projects-title">
+        <Typewriter
+          onInit={(typewriter) => {
+            typewriter
+              .typeString("My Projects")
+              .start();
+          }}
+          options={{
+            loop: false,
+            delay: 40,
+          }}
+        />
+      </h1>
       
       <div className="projects-grid">
         {projectData.map((project) => (

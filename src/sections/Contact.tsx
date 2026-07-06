@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import emailIcon from '../assets/icon-email.png';
 import githubIcon from '../assets/icon-github.png';
 import linkedinIcon from '../assets/icon-linkedin.png';
+import Typewriter from 'typewriter-effect';
 
 interface ContactMethod {
   id: number;
@@ -42,7 +43,19 @@ function Contact() {
 
   return (
     <section id="contact">
-      <h1 className="contact-title">Contact Me!</h1>
+      <h1 className="contact-title">
+        <Typewriter
+          onInit={(typewriter) => {
+            typewriter
+              .typeString("Contact Me!")
+              .start();
+          }}
+          options={{
+            loop: false,
+            delay: 40,
+          }}
+        />
+      </h1>
       
       <div className="contact-list">
         {contactLinks.map((link) => (

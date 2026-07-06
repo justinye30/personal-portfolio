@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import developforgood from '../assets/develop-for-good-logo.jpg';
 import sharkbyte from '../assets/sharkbyte-logo.png';
+import Typewriter from 'typewriter-effect';
 
 interface Job {
   id: number;
@@ -34,7 +35,19 @@ function Experience() {
 
   return (
     <section id="experience">
-      <h1 className="experience-title">My Experience</h1>
+      <h1 className="experience-title">
+        <Typewriter
+          onInit={(typewriter) => {
+            typewriter
+              .typeString("My Experience")
+              .start();
+          }}
+          options={{
+            loop: false,
+            delay: 40,
+          }}
+        />
+      </h1>
       
       <div className="experience-list">
         {jobHistory.map((job) => (
