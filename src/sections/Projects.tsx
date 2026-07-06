@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import stella from '../assets/stella.jpg';
 import yuha from '../assets/yuha.jpg';
 import stella2 from '../assets/stella2.jpg';
@@ -13,6 +14,10 @@ interface Project {
 }
 
 function Projects() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const projectData: Project[] = [
     {
       id: 1,

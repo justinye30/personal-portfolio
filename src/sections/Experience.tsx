@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import developforgood from '../assets/develop-for-good-logo.jpg';
 import sharkbyte from '../assets/sharkbyte-logo.png';
 
@@ -10,6 +11,10 @@ interface Job {
 }
 
 function Experience() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const jobHistory: Job[] = [
     {
       id: 1,

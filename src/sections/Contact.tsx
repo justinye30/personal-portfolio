@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import emailIcon from '../assets/icon-email.png';
 import githubIcon from '../assets/icon-github.png';
 import linkedinIcon from '../assets/icon-linkedin.png';
@@ -11,6 +12,10 @@ interface ContactMethod {
 }
 
 function Contact() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   const contactLinks: ContactMethod[] = [
     {
       id: 1,

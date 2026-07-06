@@ -3,6 +3,7 @@ import starImg from '../assets/star.png';
 
 function Home() {
   useEffect(() => {
+    window.scrollTo(0, 0);
     document.body.classList.add('home-page-body');
 
     return () => {
