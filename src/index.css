@@ -31,10 +31,6 @@ p {
 }
 
 /* Home Section */
-body.home-page-body {
-  overflow-y: hidden;
-}
-
 .home-title {
   text-shadow: 2px 2px 0px #2d3036;
 }
@@ -53,54 +49,6 @@ body.home-page-body {
 .home-content {
   position: relative;
   z-index: 2;
-}
-
-.home-stars-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.18;
-}
-
-.bg-star {
-  position: absolute;
-  user-select: none;
-}
-
-.star-giant {
-  width: 750px;
-  height: 750px;
-  left: -380px;
-  top: 45%;
-  transform: translateY(-50%) rotate(-15deg);
-}
-
-.star-small-top {
-  width: 200px;
-  height: 200px;
-  left: 55%;
-  top: 0%;
-  transform: rotate(12deg);
-}
-
-.star-small-right {
-  width: 200px;
-  height: 200px;
-  right: 5%;
-  top: 35%;
-  transform: rotate(-25deg);
-}
-
-.star-small-bottom {
-  width: 200px;
-  height: 200px;
-  left: 42%;
-  bottom: 6%;
-  transform: rotate(5deg);
 }
 
 /* Navbar Section */
