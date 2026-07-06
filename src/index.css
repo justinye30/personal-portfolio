@@ -19,23 +19,28 @@ h1 {
   font-size: 6.2rem;
   margin-bottom: 0.5rem;
   color: #cad1df;
-  text-shadow: 2px 2px 0px #2d3036;
 }
 
 h2 {
   font-size: 2.5rem;
   color: #cad1df;
-  text-shadow: 1px 1px 0px #2d3036;
 }
 
 p {
-  font-size: 1.75rem;
   line-height: 1.4;
 }
 
 /* Home Section */
 body.home-page-body {
   overflow-y: hidden;
+}
+
+.home-title {
+  text-shadow: 2px 2px 0px #2d3036;
+}
+
+.home-text {
+  text-shadow: 1px 1px 0px #2d3036;
 }
 
 .home-container {
