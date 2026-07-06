@@ -5,7 +5,6 @@ body {
   font-family: 'VT323', monospace;
   font-size: 1.25rem;
   background-color: #363646;
-  color: #f0f0f0;
 }
 
 main {
@@ -19,11 +18,14 @@ main {
 h1 {
   font-size: 6.2rem;
   margin-bottom: 0.5rem;
+  color: #cad1df;
+  text-shadow: 2px 2px 0px #2d3036;
 }
 
 h2 {
   font-size: 2.5rem;
-  color: #ffffff;
+  color: #cad1df;
+  text-shadow: 1px 1px 0px #2d3036;
 }
 
 p {
@@ -129,20 +131,21 @@ body.home-page-body {
 }
 
 .nav-button:hover {
-  color: #f0f0f0;
+  color: #cad1df;
 }
 
 .nav-button.active {
   font-weight: bold;
-  color: #f0f0f0;
-  border-bottom: 2px solid #f0f0f0;
+  color: #cad1df;
+  border-bottom: 2px solid #cad1df;
 }
 
 /* Projects Section */
 .projects-title {
   font-size: 4rem;
   margin-bottom: 2rem;
-  color: #ffffff;
+  color: #cad1df;
+  text-shadow: 1px 1px 0px #2d3036;
 }
 
 .projects-grid {
@@ -265,17 +268,18 @@ body.home-page-body {
 .btn-inner {
   font-size: 0.95rem;
   font-weight: bold;
-  color: #e6e3e0;
+  color: #ddd4cb;
   letter-spacing: 0.5px;
   display: block;
-  text-shadow: 1px 1px 0px #31302e;
+  text-shadow: 1px 1px 0px #4d4b48;
 }
 
 /* Experience Section */
 .experience-title {
   font-size: 4rem;
   margin-bottom: 2rem;
-  color: #ffffff;
+  color: #cad1df;
+  text-shadow: 1px 1px 0px #2d3036;
 }
 
 .experience-list {
@@ -353,7 +357,8 @@ body.home-page-body {
 .contact-title {
   font-size: 4rem;
   margin-bottom: 2.5rem;
-  color: #ffffff;
+  color: #cad1df;
+  text-shadow: 1px 1px 0px #2d3036;
 }
 
 .contact-list {
@@ -384,24 +389,24 @@ body.home-page-body {
   width: 24px;
   height: 24px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
+  filter: invert(1) brightness(0.88);
 }
 
 .badge-email,
 .badge-linkedin,
 .badge-github {
   background-color: transparent !important;
-  border: 2px solid #ffffff;
+  border: 2px solid #cad1df;
 }
 
 .contact-link {
   font-size: 1.75rem !important;
-  color: #e0e0e0;
+  color: #cad1df;
   text-decoration: none;
   transition: color 0.2s ease, text-decoration 0.2s ease;
 }
 
 .contact-link:hover {
-  color: #ffffff;
+  color: #cad1df;
   text-decoration: underline;
 }
