@@ -74,7 +74,7 @@ body.home-page-body {
 .star-giant {
   width: 750px;
   height: 750px;
-  left: -400px;
+  left: -380px;
   top: 45%;
   transform: translateY(-50%) rotate(-15deg);
 }
@@ -99,7 +99,7 @@ body.home-page-body {
   width: 200px;
   height: 200px;
   left: 42%;
-  bottom: 5%;
+  bottom: 6%;
   transform: rotate(5deg);
 }
 
