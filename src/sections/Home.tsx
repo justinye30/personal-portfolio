@@ -21,8 +21,10 @@ function Home() {
                   strings: [
                     'full-stack development.',
                     'machine learning.',
-                    'agentic systems.',
+                    'accessibility.',
                     'UX/UI.',
+                    'agentic systems.',
+                    'databases.',
                     'game development.',
                   ],
                   autoStart: true,
