@@ -335,6 +335,7 @@ p {
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   width: calc(100% + 8rem);
+  max-width: 78rem;
   margin-left: -8rem;
   position: relative;
   z-index: 2;
@@ -497,6 +498,7 @@ p {
   flex-direction: column;
   gap: 2rem;
   width: calc(100% + 8rem);
+  max-width: 78rem;
   align-items: flex-start;
   margin-left: -8rem;
   position: relative;
