@@ -45,18 +45,23 @@ function App() {
       <Navbar currentTab={activeSection} setCurrentTab={scrollToSection} />
 
       <div className="page-body">
-        <div className="side-rail">
-          <a href="https://github.com/justinye30" target="_blank" rel="noopener noreferrer" className="side-rail-icon" aria-label="GitHub">
+        <div className="side-icons">
+          <a href="https://github.com/justinye30" target="_blank" rel="noopener noreferrer" className="side-icons-icon" aria-label="GitHub">
             <img src={githubIcon} alt="" />
           </a>
-          <div className="side-rail-line" />
-          <a href="https://www.linkedin.com/in/justin-ye0/" target="_blank" rel="noopener noreferrer" className="side-rail-icon" aria-label="LinkedIn">
+          <div className="side-icons-line" />
+          <a href="https://www.linkedin.com/in/justin-ye0/" target="_blank" rel="noopener noreferrer" className="side-icons-icon" aria-label="LinkedIn">
             <img src={linkedinIcon} alt="" />
           </a>
-          <div className="side-rail-line" />
-          <a href="mailto:justinye787@gmail.com" className="side-rail-icon" aria-label="Email">
+          <div className="side-icons-line" />
+          <a href="mailto:justinye787@gmail.com" className="side-icons-icon" aria-label="Email">
             <img src={emailIcon} alt="" />
           </a>
+          <div className="side-icons-tail" />
+        </div>
+
+        <div className="side-rail">
+          <div className="side-rail-circle" />
           <div className="side-rail-tail" />
         </div>
 
