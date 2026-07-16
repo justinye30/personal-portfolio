@@ -62,11 +62,15 @@ function Projects() {
       <div className="projects-grid">
         {projectData.map((project) => (
           <div key={project.id} className="retro-console-card">
-            
-            <div className="console-screen-bezel">
-                <div className="screen-inner">
-                    <img src={project.imageUrl} alt={project.title} className="screen-image" />
-                </div>
+
+            <div className="console-titlebar">
+              <div className="titlebar-dots"><span></span><span></span><span></span></div>
+              <span className="titlebar-filename">{project.title.replace(/\s+/g, '')}.tsx</span>
+              <div className="titlebar-status"></div>
+            </div>
+
+            <div className="screen-inner">
+                <img src={project.imageUrl} alt={project.title} className="screen-image" />
             </div>
 
             <div className="console-controls">

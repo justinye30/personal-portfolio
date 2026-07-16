@@ -9,6 +9,7 @@ function Home() {
   return (
     <section id="home" className="home-container">
       <div className="home-content">
+        <p className="prompt-line">$ whoami</p>
         <div className="home-title">
           <h1>
             <Typewriter

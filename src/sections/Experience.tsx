@@ -52,13 +52,18 @@ function Experience() {
       <div className="experience-list">
         {jobHistory.map((job) => (
           <div key={job.id} className="job-card">
-            <h2 className="job-company">{job.company}</h2>
-            
-            <div className="job-content">
+            <div className="console-titlebar">
+              <div className="titlebar-dots"><span></span><span></span><span></span></div>
+              <span className="titlebar-filename">{job.company.replace(/\s+/g, '')}.log</span>
+              <div className="titlebar-status"></div>
+            </div>
+
+            <div className="job-body">
               <div className="job-logo">
                 <img src={job.imageUrl} alt={job.company} className="logo-image" />
               </div>
               <div className="job-details">
+                <h2 className="job-company">{job.company}</h2>
                 <h3 className="job-role">{job.role}</h3>
                 <p className="job-date">{job.duration}</p>
               </div>
