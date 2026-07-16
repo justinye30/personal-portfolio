@@ -15,23 +15,47 @@ function App() {
   const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-40% 0px -55% 0px' }
-    );
+    // The section whose top has scrolled past this line (in viewport px) is active.
+    const ACTIVE_LINE = 140;
 
-    SECTION_IDS.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    const updateActiveSection = () => {
+      // Near the bottom of the page a short last section may never scroll
+      // its top past ACTIVE_LINE, so force it active once we hit bottom.
+      const atBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      if (atBottom) {
+        setActiveSection(SECTION_IDS[SECTION_IDS.length - 1]);
+        return;
+      }
 
-    return () => observer.disconnect();
+      let current = SECTION_IDS[0];
+      for (const id of SECTION_IDS) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= ACTIVE_LINE) {
+          current = id;
+        }
+      }
+      setActiveSection(current);
+    };
+
+    updateActiveSection();
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        updateActiveSection();
+        ticking = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   const scrollToSection = (tab: string) => {

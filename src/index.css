@@ -124,7 +124,7 @@ p {
   position: absolute;
   left: 13rem;
   /* track the bottom-aligned hero so the circle sits beside its text */
-  top: calc(100vh - 23.5rem);
+  top: calc(100vh - 25rem);
   bottom: 0;
   display: flex;
   flex-direction: column;
@@ -207,7 +207,7 @@ p {
   position: relative;
   /* fill the first screen (minus navbar) so the hero starts around mid-screen
      and the gap below it equals the standard 16rem section gap */
-  min-height: calc(100vh - 15rem);
+  min-height: calc(100vh - 16.5rem);
   display: flex;
   align-items: flex-end;
 }
