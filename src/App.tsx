@@ -16,7 +16,7 @@ function App() {
 
   useEffect(() => {
     // The section whose top has scrolled past this line (in viewport px) is active.
-    const ACTIVE_LINE = 140;
+    const ACTIVE_LINE = 150;
 
     const updateActiveSection = () => {
       // Near the bottom of the page a short last section may never scroll
