@@ -4,7 +4,7 @@ interface NavbarProps {
 }
 
 function Navbar({ currentTab, setCurrentTab }: NavbarProps) {
-  const tabs = ['home', 'projects', 'experience', 'contact'];
+  const tabs = ['home', 'about', 'projects', 'experience', 'contact'];
 
   return (
     <nav className="navbar">

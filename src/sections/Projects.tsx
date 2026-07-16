@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
 import githubIconImg from '../assets/icon-github.png';
-import Typewriter from 'typewriter-effect';
+import SectionTitle from '../components/SectionTitle';
 
 interface Project {
   id: number;
@@ -12,10 +11,6 @@ interface Project {
 }
 
 function Projects() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   const projectData: Project[] = [
     {
       id: 1,
@@ -45,19 +40,7 @@ function Projects() {
 
   return (
     <section id="projects">
-      <h1 className="projects-title">
-        <Typewriter
-          onInit={(typewriter) => {
-            typewriter
-              .typeString("My Projects")
-              .start();
-          }}
-          options={{
-            loop: false,
-            delay: 40,
-          }}
-        />
-      </h1>
+      <SectionTitle text="My Projects" className="projects-title" />
       
       <div className="projects-grid">
         {projectData.map((project) => (

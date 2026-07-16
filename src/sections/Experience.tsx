@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
 import developforgood from '../assets/develop-for-good-logo.jpg';
 import sharkbyte from '../assets/sharkbyte-logo.png';
-import Typewriter from 'typewriter-effect';
+import SectionTitle from '../components/SectionTitle';
 
 interface Job {
   id: number;
@@ -12,10 +11,6 @@ interface Job {
 }
 
 function Experience() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   const jobHistory: Job[] = [
     {
       id: 1,
@@ -35,19 +30,7 @@ function Experience() {
 
   return (
     <section id="experience">
-      <h1 className="experience-title">
-        <Typewriter
-          onInit={(typewriter) => {
-            typewriter
-              .typeString("My Experience")
-              .start();
-          }}
-          options={{
-            loop: false,
-            delay: 40,
-          }}
-        />
-      </h1>
+      <SectionTitle text="My Experience" className="experience-title" />
       
       <div className="experience-list">
         {jobHistory.map((job) => (

@@ -1,8 +1,7 @@
-import { useEffect } from 'react';
 import emailIcon from '../assets/icon-email.png';
 import githubIcon from '../assets/icon-github.png';
 import linkedinIcon from '../assets/icon-linkedin.png';
-import Typewriter from 'typewriter-effect';
+import SectionTitle from '../components/SectionTitle';
 
 interface ContactMethod {
   id: number;
@@ -13,10 +12,6 @@ interface ContactMethod {
 }
 
 function Contact() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-  
   const contactLinks: ContactMethod[] = [
     {
       id: 1,
@@ -43,19 +38,7 @@ function Contact() {
 
   return (
     <section id="contact">
-      <h1 className="contact-title">
-        <Typewriter
-          onInit={(typewriter) => {
-            typewriter
-              .typeString("Contact Me!")
-              .start();
-          }}
-          options={{
-            loop: false,
-            delay: 40,
-          }}
-        />
-      </h1>
+      <SectionTitle text="Contact Me!" className="contact-title" />
       
       <div className="contact-list">
         {contactLinks.map((link) => (

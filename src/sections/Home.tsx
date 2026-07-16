@@ -1,11 +1,6 @@
-import { useEffect } from 'react';
 import Typewriter from 'typewriter-effect';
 
 function Home() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   return (
     <section id="home" className="home-container">
       <div className="home-content">
