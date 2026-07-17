@@ -7,14 +7,13 @@ function About() {
 
       <div className="about-text">
         <p>
-          [Placeholder] Write a short introduction here — who you are, where
-          you're studying or working, and the kind of problems you enjoy
-          solving. Two or three sentences is plenty for a first paragraph.
+          Currently studying at the University of British Columbia,
+          I have a passion for building software to help create
+          a more sustainable and accessible future.
         </p>
         <p>
-          [Placeholder] A second paragraph can cover life outside of code —
-          interests, hobbies, what you're currently learning, or what you're
-          looking for next.
+          Outside of work, I love playing basketball and volleyball, as
+          well as performing as a saxophonist in a jazz band.
         </p>
       </div>
     </section>

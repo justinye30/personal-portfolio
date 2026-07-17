@@ -22,7 +22,7 @@ function Home() {
         </div>
         <div className="home-text">
           <h2>
-            I'm a developer who's interested in{' '}
+            I'm a software engineer who's interested in{' '}
             <span className="typewriter-span">
               <Typewriter
                 options={{
