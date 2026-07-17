@@ -34,6 +34,14 @@ main section {
   padding-bottom: 10rem;
 }
 
+/* Tighter gaps between about/projects/experience/contact; home keeps the
+   larger 10rem gap above. */
+#about,
+#projects,
+#experience {
+  padding-bottom: 6rem;
+}
+
 /* Body Text */
 h1 {
   font-family: 'VT323', monospace;
