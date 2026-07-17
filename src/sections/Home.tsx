@@ -29,11 +29,10 @@ function Home() {
                   strings: [
                     'full-stack development.',
                     'machine learning.',
-                    'accessibility.',
-                    'UX/UI.',
                     'agentic systems.',
                     'databases.',
                     'game development.',
+                    'accessibility.',
                   ],
                   autoStart: true,
                   loop: true,
