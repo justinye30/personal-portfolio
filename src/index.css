@@ -560,14 +560,14 @@ p {
   gap: 0.2rem;
 }
 
-.job-company {
+.job-role {
   font-size: 1.1rem !important;
   font-weight: 700;
   margin: 0;
   color: var(--ink);
 }
 
-.job-role {
+.job-company {
   font-size: 0.9rem !important;
   margin: 0;
   color: var(--ink-dim);

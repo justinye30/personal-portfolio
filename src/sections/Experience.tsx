@@ -46,8 +46,8 @@ function Experience() {
                 <img src={job.imageUrl} alt={job.company} className="logo-image" />
               </div>
               <div className="job-details">
-                <h2 className="job-company">{job.company}</h2>
-                <h3 className="job-role">{job.role}</h3>
+                <h2 className="job-role">{job.role}</h2>
+                <h3 className="job-company">{job.company}</h3>
                 <p className="job-date">{job.duration}</p>
               </div>
             </div>
