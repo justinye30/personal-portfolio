@@ -456,7 +456,7 @@ p {
 .console-github-icon-img {
   width: 22px;
   height: 22px;
-  padding-left: 12px;
+  padding-left: 15px;
   object-fit: contain;
   filter: invert(1) brightness(0.7);
 }

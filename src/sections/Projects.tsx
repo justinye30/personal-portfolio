@@ -6,7 +6,7 @@ interface Project {
   title: string;
   description: string;
   tags: string[];
-  githubUrl: string;
+  githubUrl?: string;
   imageUrl?: string;
 }
 
@@ -14,7 +14,7 @@ function Projects() {
   const projectData: Project[] = [
     {
       id: 1,
-      title: "Project Alpha",
+      title: "Dishly",
       description: "A full-stack web application designed to handle real-time data streaming and analysis with optimized queries.",
       tags: ["React", "TypeScript", "Vite", "Node.js"],
       githubUrl: "#",
@@ -22,7 +22,7 @@ function Projects() {
     },
     {
       id: 2,
-      title: "Project Beta",
+      title: "Pixlr",
       description: "An elegant solution utilizing complex algorithms to maximize process efficiency across various data platforms.",
       tags: ["React", "Tailwind CSS", "PostgreSQL"],
       githubUrl: "#",
@@ -30,7 +30,22 @@ function Projects() {
     },
     {
       id: 3,
-      title: "Project Gamma",
+      title: "Smart Reader",
+      description: "Turning service APIs into a cohesive UI layout framework.",
+      tags: ["TypeScript", "Express", "API Integration"],
+      githubUrl: "#",
+      imageUrl: githubIconImg,
+    },
+    {
+      id: 4,
+      title: "Job Listings Tracker",
+      description: "Turning service APIs into a cohesive UI layout framework.",
+      tags: ["TypeScript", "Express", "API Integration"],
+      imageUrl: githubIconImg,
+    },
+    {
+      id: 5,
+      title: "Osu Remake",
       description: "Turning service APIs into a cohesive UI layout framework.",
       tags: ["TypeScript", "Express", "API Integration"],
       githubUrl: "#",
@@ -48,7 +63,7 @@ function Projects() {
 
             <div className="console-titlebar">
               <div className="titlebar-dots"><span></span><span></span><span></span></div>
-              <span className="titlebar-filename">{project.title.replace(/\s+/g, '')}.tsx</span>
+              <span className="titlebar-filename">{project.title.replace(/\s+/g, '')}.log</span>
               <div className="titlebar-status"></div>
             </div>
 
@@ -59,15 +74,17 @@ function Projects() {
             <div className="console-controls">
                 <div className="console-header-row">
                 <h2 className="console-card-title">{project.title}</h2>
-                <a 
-                    href={project.githubUrl} 
-                    className="console-github-icon"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    aria-label="View Source on GitHub"
-                >
-                    <img src={githubIconImg} alt="GitHub Link" className="console-github-icon-img" />
-                </a>
+                {project.githubUrl && (
+                    <a
+                        href={project.githubUrl}
+                        className="console-github-icon"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="View Source on GitHub"
+                    >
+                        <img src={githubIconImg} alt="GitHub Link" className="console-github-icon-img" />
+                    </a>
+                )}
                 </div>
 
                 <p className="console-card-text">{project.description}</p>
