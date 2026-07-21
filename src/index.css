@@ -248,6 +248,9 @@ p {
 .typewriter-span {
   display: inline-block;
   color: var(--accent);
+}
+
+.typewriter-span .Typewriter__wrapper {
   border-bottom: 1px solid var(--accent);
 }
 
@@ -299,6 +302,10 @@ p {
 }
 
 .nav-cursor {
+  opacity: 0;
+}
+
+.nav-cursor.active {
   animation: blink 1s steps(1) infinite;
 }
 
@@ -308,8 +315,9 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-cursor {
+  .nav-cursor.active {
     animation: none;
+    opacity: 1;
   }
 }
 

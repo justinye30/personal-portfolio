@@ -16,7 +16,7 @@ function Navbar({ currentTab, setCurrentTab }: NavbarProps) {
               className={`nav-button ${currentTab === tab ? 'active' : ''}`}
             >
               {'> '}{tab.charAt(0).toUpperCase() + tab.slice(1)}
-              <span className={currentTab === tab ? 'nav-cursor' : ''}>_</span>
+              <span className={`nav-cursor ${currentTab === tab ? 'active' : ''}`}>_</span>
             </button>
           </li>
         ))}

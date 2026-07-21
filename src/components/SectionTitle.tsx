@@ -17,10 +17,7 @@ function SectionTitle({ text, className }: SectionTitleProps) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisible(true);
-            observer.disconnect();
-          }
+          setVisible(entry.isIntersecting);
         });
       },
       { threshold: 0.4 }
@@ -37,6 +34,9 @@ function SectionTitle({ text, className }: SectionTitleProps) {
           onInit={(typewriter) => {
             typewriter
               .typeString(text)
+              .callFunction(({ elements }) => {
+                elements.cursor.style.display = 'none';
+              })
               .start();
           }}
           options={{
