@@ -12,8 +12,8 @@ function About() {
           a more sustainable and accessible future.
         </p>
         <p>
-          Outside of work, I love playing basketball and volleyball, as
-          well as performing as a saxophonist in a jazz band.
+          Outside of work, I like playing basketball and volleyball, as
+          well as performing as a saxophonist in a jazz band!
         </p>
       </div>
     </section>
