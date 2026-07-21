@@ -1,13 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Fira+Code:wght@400;500&family=Geist+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg: #14161f;
-  --panel: #1b1e2c;
-  --ink: #c9cedd;
-  --ink-dim: #6b7086;
+  --bg: #1a1a1a;
+  --panel: #242424;
+  --ink: #eeeeee;
+  --ink-dim: #9c9c9c;
   --accent: #7c96c9;
   --accent-2: #9bd1c9;
-  --border: #282c3d;
+  --border: #333333;
 }
 
 body {
@@ -44,9 +44,10 @@ main section {
 
 /* Body Text */
 h1 {
-  font-family: 'VT323', monospace;
-  font-weight: 400;
-  font-size: clamp(2.6rem, 5vw, 4.4rem);
+  font-family: 'Fira Code', monospace;
+  font-weight: 500;
+  font-size: clamp(1.85rem, 3.56vw, 3.14rem);
+  letter-spacing: -0.04em;
   margin-bottom: 0.5rem;
   color: var(--ink);
 }
@@ -54,10 +55,13 @@ h1 {
 h2 {
   font-size: 1.4rem;
   font-weight: 400;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 p {
+  font-family: 'Geist Mono', monospace;
+  letter-spacing: 0.01em;
   line-height: 1.4;
 }
 
@@ -226,9 +230,9 @@ p {
 }
 
 .prompt-line {
-  font-family: 'VT323', monospace;
-  font-size: 1.3rem;
-  letter-spacing: 0.06em;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.96rem;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--accent);
   margin: 0 0 0.5rem 0;
@@ -248,7 +252,7 @@ p {
 }
 
 .Typewriter__cursor {
-  font-family: 'VT323', monospace;
+  font-family: 'Fira Code', monospace;
   color: var(--ink);
 }
 
@@ -261,7 +265,7 @@ p {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(20, 22, 31, 0.92);
+  background: rgba(26, 26, 26, 0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
@@ -279,9 +283,8 @@ p {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'VT323', monospace;
-  font-size: 1.65rem;
-  letter-spacing: 0.03em;
+  font-family: 'Fira Code', monospace;
+  font-size: 1.18rem;
   padding: 0.4rem 0;
   color: var(--ink-dim);
   transition: color 0.2s ease;
@@ -315,7 +318,7 @@ p {
 .projects-title,
 .experience-title,
 .contact-title {
-  font-size: clamp(2rem, 3.6vw, 3rem);
+  font-size: clamp(1.43rem, 2.57vw, 2.14rem);
   margin-bottom: 2.5rem;
   color: var(--ink);
 }
@@ -326,7 +329,7 @@ p {
 }
 
 .about-text p {
-  font-size: 1.3rem;
+  font-size: 1.27rem;
   line-height: 1.75;
   color: var(--ink);
   opacity: 0.85;
@@ -399,8 +402,9 @@ p {
 }
 
 .titlebar-filename {
-  font-family: 'VT323', monospace;
-  font-size: 1rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.71rem;
+  letter-spacing: -0.04em;
   color: var(--ink-dim);
 }
 
@@ -467,7 +471,7 @@ p {
 }
 
 .console-card-text {
-  font-size: 0.85rem !important;
+  font-size: 0.83rem !important;
   line-height: 1.5;
   margin: 0 0 1rem 0;
   color: var(--ink-dim);
@@ -496,7 +500,7 @@ p {
   font-size: 0.68rem;
   font-weight: bold;
   color: var(--accent);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
   display: block;
 }
 
@@ -574,7 +578,7 @@ p {
 }
 
 .job-date {
-  font-size: 0.78rem !important;
+  font-size: 0.76rem !important;
   margin: 0;
   color: var(--ink-dim);
   opacity: 0.75;
@@ -619,6 +623,7 @@ p {
 
 .contact-link {
   font-size: 1rem !important;
+  letter-spacing: -0.02em;
   color: var(--ink);
   text-decoration: none;
   transition: color 0.2s ease;

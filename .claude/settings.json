@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:donaldlee.xyz)",
+      "Bash(curl -sL \"https://donaldlee.xyz/\" -A \"Mozilla/5.0\")",
+      "Bash(curl -sL \"https://donaldlee.xyz/CSS/dark_mode_colours.css\" -A \"Mozilla/5.0\")",
+      "Bash(curl -sL \"https://donaldlee.xyz/CSS/universal.css\" -A \"Mozilla/5.0\")",
+      "Bash(curl -sL \"https://donaldlee.xyz/CSS/home.css\" -A \"Mozilla/5.0\")",
+      "Bash(grep -i -E \"#[0-9a-fA-F]{3,6}|rgb\\\\\\(\")",
+      "Bash(curl -sL \"https://www.joycaipersonalportfolio.com/\" -A \"Mozilla/5.0\")",
+      "Bash(curl -sL \"https://www.joycaipersonalportfolio.com/_next/static/css/8dc3c7d001efc7f9.css\" -A \"Mozilla/5.0\")",
+      "Bash(curl -sL \"https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap\" -A \"Mozilla/5.0\")",
+      "Bash(curl -sL \"https://api.github.com/repos/google/fonts/contents/ofl/spacemono\")",
+      "Bash(curl -sL \"https://api.github.com/repos/google/fonts/contents/ofl/geistmono\")",
+      "Bash(curl -sL \"https://api.github.com/repos/google/fonts/contents/apache/geistmono\")",
+      "Bash(curl -sL -o SpaceMono-Regular.ttf \"https://raw.githubusercontent.com/google/fonts/main/ofl/spacemono/SpaceMono-Regular.ttf\")",
+      "Bash(curl -sL -o GeistMono-VF.ttf \"https://raw.githubusercontent.com/google/fonts/main/ofl/geistmono/GeistMono%5Bwght%5D.ttf\")"
+    ]
+  }
+}
