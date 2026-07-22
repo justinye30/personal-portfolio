@@ -3,6 +3,7 @@
 :root {
   --bg: #1a1a1a;
   --panel: #242424;
+  --navbar-bg: #1d1d1d;
   --ink: #eeeeee;
   --ink-dim: #9c9c9c;
   --accent: #7c96c9;
@@ -268,7 +269,7 @@ p {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(26, 26, 26, 0.92);
+  background: color-mix(in srgb, var(--navbar-bg) 92%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
