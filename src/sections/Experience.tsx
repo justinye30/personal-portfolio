@@ -1,5 +1,5 @@
-import developforgood from '../assets/develop-for-good-logo.jpg';
-import sharkbyte from '../assets/sharkbyte-logo.png';
+import developforgood from '../assets/logo-develop-for-good.jpg';
+import sharkbyte from '../assets/logo-sharkbyte.png';
 import SectionTitle from '../components/SectionTitle';
 
 interface Job {
