@@ -53,7 +53,7 @@ function About() {
               <li>
                 Node.js
                 <ul>
-                  <li>Express.js</li>
+                  <li>Express</li>
                 </ul>
               </li>
               <li>C#</li>
