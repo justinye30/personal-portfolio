@@ -145,7 +145,7 @@ function ProjectCard({ project }: { project: Project }) {
 function Projects() {
   return (
     <section id="projects">
-      <SectionTitle text="My Projects" className="projects-title" />
+      <SectionTitle text="Some Things I've Built" className="projects-title" />
 
       <div className="projects-grid">
         {projectData.map((project) => (

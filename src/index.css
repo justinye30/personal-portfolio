@@ -62,7 +62,7 @@ h2 {
 
 p {
   font-family: 'Geist Mono', monospace;
-  letter-spacing: 0.01em;
+  letter-spacing: 0em;
   line-height: 1.4;
 }
 
@@ -233,7 +233,7 @@ p {
 .prompt-line {
   font-family: 'Fira Code', monospace;
   font-size: 0.96rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   color: var(--accent);
   margin: 0 0 0.5rem 0;
@@ -327,7 +327,7 @@ p {
 .projects-title,
 .experience-title,
 .contact-title {
-  font-size: clamp(1.43rem, 2.57vw, 2.14rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.8rem);
   margin-bottom: 2.5rem;
   color: var(--ink);
 }
@@ -347,6 +347,66 @@ p {
 
 .about-text p:last-child {
   margin-bottom: 0;
+}
+
+/* Skills Section */
+.skills-section {
+  margin-top: 3.2rem;
+}
+
+.skills-title {
+  font-size: 1.27rem;
+  line-height: 1.75;
+  color: var(--ink);
+  opacity: 0.85;
+  margin: 0 0 1.6rem 0;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.skills-column-title {
+  font-size: 1.27rem;
+  line-height: 1.75;
+  color: var(--ink);
+  opacity: 0.85;
+  margin: 0 0 1rem 0;
+}
+
+.skills-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.skills-column li {
+  position: relative;
+  font-size: 1.27rem;
+  line-height: 1.9;
+  color: var(--ink);
+  opacity: 0.85;
+  padding-left: 1.7rem;
+}
+
+.skills-column > ul > li::before {
+  content: '\27A4';
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.skills-column li li {
+  padding-left: 2.1rem;
+}
+
+.skills-column li li::before {
+  content: '\21A0';
+  position: absolute;
+  left: 0.35rem;
+  top: 0;
 }
 
 /* Projects Section */
