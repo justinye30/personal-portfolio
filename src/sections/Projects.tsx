@@ -11,6 +11,7 @@ import pixlrVideo from '../assets/vid-pixlr.mp4';
 import smartReaderVideo from '../assets/vid-smart-reader.mp4';
 import githubIconImg from '../assets/icon-github.png';
 import SectionTitle from '../components/SectionTitle';
+import Reveal from '../components/Reveal';
 
 interface Project {
   id: number;
@@ -148,8 +149,10 @@ function Projects() {
       <SectionTitle text="Some Things I've Built" className="projects-title" />
 
       <div className="projects-grid">
-        {projectData.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+        {projectData.map((project, index) => (
+          <Reveal key={project.id} direction="up" delay={(index % 3) * 100}>
+            <ProjectCard project={project} />
+          </Reveal>
         ))}
       </div>
     </section>

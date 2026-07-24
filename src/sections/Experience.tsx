@@ -1,6 +1,7 @@
 import developforgood from '../assets/logo-develop-for-good.jpg';
 import sharkbyte from '../assets/logo-sharkbyte.png';
 import SectionTitle from '../components/SectionTitle';
+import Reveal from '../components/Reveal';
 
 interface Job {
   id: number;
@@ -33,25 +34,27 @@ function Experience() {
       <SectionTitle text="My Experience" className="experience-title" />
       
       <div className="experience-list">
-        {jobHistory.map((job) => (
-          <div key={job.id} className="job-card">
-            <div className="console-titlebar">
-              <div className="titlebar-dots"><span></span><span></span><span></span></div>
-              <span className="titlebar-filename">{job.company.replace(/\s+/g, '')}.log</span>
-              <div className="titlebar-status"></div>
-            </div>
+        {jobHistory.map((job, index) => (
+          <Reveal key={job.id} direction="left" delay={index * 120}>
+            <div className="job-card">
+              <div className="console-titlebar">
+                <div className="titlebar-dots"><span></span><span></span><span></span></div>
+                <span className="titlebar-filename">{job.company.replace(/\s+/g, '')}.log</span>
+                <div className="titlebar-status"></div>
+              </div>
 
-            <div className="job-body">
-              <div className="job-logo">
-                <img src={job.imageUrl} alt={job.company} className="logo-image" />
-              </div>
-              <div className="job-details">
-                <h2 className="job-role">{job.role}</h2>
-                <h3 className="job-company">{job.company}</h3>
-                <p className="job-date">{job.duration}</p>
+              <div className="job-body">
+                <div className="job-logo">
+                  <img src={job.imageUrl} alt={job.company} className="logo-image" />
+                </div>
+                <div className="job-details">
+                  <h2 className="job-role">{job.role}</h2>
+                  <h3 className="job-company">{job.company}</h3>
+                  <p className="job-date">{job.duration}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         ))}
       </div>
     </section>
