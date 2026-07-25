@@ -1,15 +1,15 @@
 import { useRef } from 'react';
-import dishlyImg from '../assets/img-dishly.png';
-import jobListingsImg from '../assets/img-job-listings.png';
-import osuRemakeImg from '../assets/img-osu-remake.png';
-import pixlrImg from '../assets/img-pixlr.png';
-import smartReaderImg from '../assets/img-smart-reader.png';
+import dishlyImg from '../assets/img-dishly.webp';
+import jobListingsImg from '../assets/img-job-listings.webp';
+import osuRemakeImg from '../assets/img-osu-remake.webp';
+import pixlrImg from '../assets/img-pixlr.webp';
+import smartReaderImg from '../assets/img-smart-reader.webp';
 import dishlyVideo from '../assets/vid-dishly.mp4';
 import jobListingsVideo from '../assets/vid-job-listings.mp4';
 import osuRemakeVideo from '../assets/vid-osu-remake.mp4';
 import pixlrVideo from '../assets/vid-pixlr.mp4';
 import smartReaderVideo from '../assets/vid-smart-reader.mp4';
-import githubIconImg from '../assets/icon-github.png';
+import githubIconImg from '../assets/icon-github.webp';
 import SectionTitle from '../components/SectionTitle';
 import Reveal from '../components/Reveal';
 
@@ -99,7 +99,7 @@ function ProjectCard({ project }: { project: Project }) {
       </div>
 
       <div className="screen-inner">
-        <img src={project.imageUrl} alt={project.title} className="screen-image" />
+        <img src={project.imageUrl} alt={project.title} className="screen-image" loading="lazy" decoding="async" />
         {project.videoUrl && (
           <video
             ref={videoRef}
@@ -124,7 +124,7 @@ function ProjectCard({ project }: { project: Project }) {
               rel="noopener noreferrer"
               aria-label="View Source on GitHub"
             >
-              <img src={githubIconImg} alt="GitHub Link" className="console-github-icon-img" />
+              <img src={githubIconImg} alt="GitHub Link" className="console-github-icon-img" loading="lazy" decoding="async" />
             </a>
           )}
         </div>

@@ -1,5 +1,5 @@
-import developforgood from '../assets/logo-develop-for-good.jpg';
-import sharkbyte from '../assets/logo-sharkbyte.png';
+import developforgood from '../assets/logo-develop-for-good.webp';
+import sharkbyte from '../assets/logo-sharkbyte.webp';
 import SectionTitle from '../components/SectionTitle';
 import Reveal from '../components/Reveal';
 
@@ -45,7 +45,7 @@ function Experience() {
 
               <div className="job-body">
                 <div className="job-logo">
-                  <img src={job.imageUrl} alt={job.company} className="logo-image" />
+                  <img src={job.imageUrl} alt={job.company} className="logo-image" loading="lazy" decoding="async" />
                 </div>
                 <div className="job-details">
                   <h2 className="job-role">{job.role}</h2>

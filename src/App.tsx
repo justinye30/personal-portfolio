@@ -6,9 +6,9 @@ import Projects from './sections/Projects';
 import Experience from './sections/Experience';
 import Contact from './sections/Contact';
 import Footer from './components/Footer';
-import emailIcon from './assets/icon-email.png';
-import githubIcon from './assets/icon-github.png';
-import linkedinIcon from './assets/icon-linkedin.png';
+import emailIcon from './assets/icon-email.webp';
+import githubIcon from './assets/icon-github.webp';
+import linkedinIcon from './assets/icon-linkedin.webp';
 
 const SECTION_IDS = ['home', 'about', 'projects', 'experience', 'contact'];
 

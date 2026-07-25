@@ -1,6 +1,6 @@
-import emailIcon from '../assets/icon-email.png';
-import githubIcon from '../assets/icon-github.png';
-import linkedinIcon from '../assets/icon-linkedin.png';
+import emailIcon from '../assets/icon-email.webp';
+import githubIcon from '../assets/icon-github.webp';
+import linkedinIcon from '../assets/icon-linkedin.webp';
 import SectionTitle from '../components/SectionTitle';
 
 interface ContactMethod {
@@ -44,10 +44,12 @@ function Contact() {
         {contactLinks.map((link) => (
           <div key={link.id} className="contact-item">
             <div className={`contact-icon-badge badge-${link.type}`}>
-              <img 
-                src={link.iconImg} 
-                alt={`${link.type} icon`} 
+              <img
+                src={link.iconImg}
+                alt={`${link.type} icon`}
                 className="contact-icon-image"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             
