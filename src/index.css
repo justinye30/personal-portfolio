@@ -338,10 +338,10 @@ p {
 }
 
 .about-text p {
-  font-size: 1.27rem;
+  font-size: 1.1rem;
   line-height: 1.75;
   color: var(--ink);
-  opacity: 0.85;
+  opacity: 0.9;
   margin: 0 0 1.2rem 0;
 }
 
@@ -355,10 +355,10 @@ p {
 }
 
 .skills-title {
-  font-size: 1.27rem;
+  font-size: 1.1rem;
   line-height: 1.75;
   color: var(--ink);
-  opacity: 0.85;
+  opacity: 0.9;
   margin: 0 0 1.6rem 0;
 }
 
@@ -369,10 +369,10 @@ p {
 }
 
 .skills-column-title {
-  font-size: 1.27rem;
+  font-size: 1.1rem;
   line-height: 1.75;
   color: var(--ink);
-  opacity: 0.85;
+  opacity: 0.9;
   margin: 0 0 1rem 0;
 }
 
@@ -384,10 +384,10 @@ p {
 
 .skills-column li {
   position: relative;
-  font-size: 1.27rem;
+  font-size: 1.1rem;
   line-height: 1.9;
   color: var(--ink);
-  opacity: 0.85;
+  opacity: 0.9;
   padding-left: 1.7rem;
 }
 
