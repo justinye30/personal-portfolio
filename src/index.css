@@ -182,32 +182,6 @@ p {
   margin-top: 0.8rem;
 }
 
-@media (max-width: 900px) {
-  .side-icons,
-  .side-rail,
-  .side-tag {
-    display: none;
-  }
-
-  main {
-    padding: 0 2rem;
-  }
-
-  .navbar {
-    padding: 1rem 2rem;
-  }
-
-  .projects-grid {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .experience-list {
-    width: 100%;
-    margin-left: 0;
-  }
-}
-
 /* Home Section */
 .home-container {
   position: relative;
@@ -272,6 +246,46 @@ p {
   gap: 2.2rem;
   margin: 0;
   padding: 0;
+}
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--ink);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.nav-toggle.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-toggle span {
+    transition: none;
+  }
 }
 
 .nav-button {
@@ -761,5 +775,79 @@ p {
 @media (max-width: 900px) {
   .site-footer {
     padding: 2.5rem 2rem 3rem 2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  main {
+    padding: 0 1.5rem;
+  }
+
+  .side-icons,
+  .side-rail,
+  .side-tag {
+    display: none;
+  }
+
+  .navbar {
+    padding: 1rem 1.5rem;
+    justify-content: flex-end;
+  }
+
+  .nav-toggle {
+    display: flex;
+  }
+
+  .navbar-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin: 0;
+    padding: 0.5rem 1.5rem 1rem 1.5rem;
+    background: var(--navbar-bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-links li {
+    width: 100%;
+  }
+
+  .nav-button {
+    width: 100%;
+    text-align: left;
+    font-size: 1.1rem;
+    padding: 0.7rem 0;
+  }
+
+  .projects-grid,
+  .experience-list {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  .job-card,
+  .experience-list > .reveal:nth-child(even) .job-card {
+    width: 100%;
+  }
+
+  .home-text h2 {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
