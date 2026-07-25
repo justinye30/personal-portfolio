@@ -16,12 +16,9 @@ function App() {
   const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
-    // The section whose top has scrolled past this line (in viewport px) is active.
     const ACTIVE_LINE = 150;
 
     const updateActiveSection = () => {
-      // Near the bottom of the page a short last section may never scroll
-      // its top past ACTIVE_LINE, so force it active once we hit bottom.
       const atBottom =
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
       if (atBottom) {
