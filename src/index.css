@@ -283,7 +283,8 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-toggle span {
+  .nav-toggle span,
+  .navbar-links {
     transition: none;
   }
 }
@@ -799,7 +800,7 @@ p {
   }
 
   .navbar-links {
-    display: none;
+    display: flex;
     position: absolute;
     top: 100%;
     left: 0;
@@ -808,13 +809,29 @@ p {
     align-items: flex-start;
     gap: 0;
     margin: 0;
-    padding: 0.5rem 1.5rem 1rem 1.5rem;
+    padding: 0 1.5rem;
     background: var(--navbar-bg);
-    border-bottom: 1px solid var(--border);
+    border-top: 0 solid var(--border);
+    border-bottom: 0 solid var(--border);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      max-height 0.32s ease,
+      opacity 0.25s ease,
+      padding-top 0.32s ease,
+      padding-bottom 0.32s ease,
+      border-top-width 0.32s ease,
+      border-bottom-width 0.32s ease;
   }
 
   .navbar-links.open {
-    display: flex;
+    max-height: 24rem;
+    opacity: 1;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
   }
 
   .navbar-links li {
