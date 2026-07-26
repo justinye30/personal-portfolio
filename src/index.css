@@ -205,9 +205,6 @@ p {
 }
 
 .home-text h2 {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
   margin-bottom: 0;
 }
 
@@ -854,7 +851,7 @@ p {
   }
 
   .home-text h2 {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
 
   .skills-grid {
@@ -869,7 +866,7 @@ p {
   .skills-title,
   .skills-column-title,
   .skills-column li {
-    font-size: 0.95rem;
+    font-size: 0.8rem;
   }
 
   /* Project cards: shorter preview, tighter padding, smaller text */
@@ -880,10 +877,10 @@ p {
     padding: 0.9rem 1rem 1.1rem 1rem;
   }
   .console-card-title {
-    font-size: 0.95rem !important;
+    font-size: 0.9rem !important;
   }
   .console-card-text {
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
   }
 
   /* Experience cards: smaller logo, tighter padding, smaller text */
@@ -921,6 +918,6 @@ p {
     height: 17px;
   }
   .contact-link {
-    font-size: 0.9rem !important;
+    font-size: 0.85rem !important;
   }
 }
