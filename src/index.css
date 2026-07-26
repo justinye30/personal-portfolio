@@ -232,7 +232,7 @@ p {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.4rem 9rem 1.4rem 17rem;
+  padding: 1.2rem 9rem 1.2rem 17rem;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -712,14 +712,14 @@ p {
 .contact-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.2rem;
   width: 100%;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.2rem;
 }
 
 .contact-icon-badge {
