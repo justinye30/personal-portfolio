@@ -766,12 +766,7 @@ p {
   opacity: 0.75;
 }
 
-@media (max-width: 900px) {
-  .site-footer {
-    padding: 2.5rem 2rem 3rem 2rem;
-  }
-}
-
+/* Mobile changes */
 @media (max-width: 900px) {
   main {
     padding: 0 1.5rem;
@@ -858,10 +853,18 @@ p {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+
+  #contact {
+    min-height: auto;
+    padding-bottom: 18rem;
+  }
+
+  .site-footer {
+    padding: 1.25rem 2rem 1.5rem 2rem;
+  }
 }
 
 @media (max-width: 640px) {
-  /* Section titles a bit smaller on mobile */
   .about-title,
   .projects-title,
   .experience-title,
@@ -870,7 +873,6 @@ p {
     margin-bottom: 2rem;
   }
 
-  /* About: smaller body copy */
   .about-text p,
   .skills-title,
   .skills-column-title,
@@ -878,7 +880,6 @@ p {
     font-size: 0.8rem;
   }
 
-  /* Project cards: shorter preview, tighter padding, smaller text */
   .screen-inner {
     height: 140px;
   }
@@ -898,30 +899,31 @@ p {
     width: 18px;
     height: 18px;
   }
+  .console-btn-tag {
+    padding: 0.2rem 0.45rem;
+  }
   .btn-inner {
     font-size: 0.6rem;
   }
 
-  /* Experience cards: smaller logo, tighter padding, smaller text */
   .job-body {
     gap: 1rem;
-    padding: 1.2rem 1.1rem;
+    padding: 0.9rem 1rem;
   }
   .job-logo {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
   }
   .job-role {
-    font-size: 0.95rem !important;
-  }
-  .job-company {
     font-size: 0.82rem !important;
   }
-  .job-date {
+  .job-company {
     font-size: 0.72rem !important;
   }
+  .job-date {
+    font-size: 0.65rem !important;
+  }
 
-  /* Contact: smaller badges and links */
   .contact-list {
     gap: 1.25rem;
   }
@@ -937,6 +939,10 @@ p {
     height: 17px;
   }
   .contact-link {
-    font-size: 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .site-footer-text {
+    font-size: 0.7rem;
   }
 }
