@@ -251,8 +251,8 @@ p {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   background: none;
   border: none;
@@ -261,7 +261,7 @@ p {
 
 .nav-toggle span {
   display: block;
-  width: 22px;
+  width: 20px;
   height: 2px;
   background: var(--ink);
   transition: transform 0.25s ease, opacity 0.2s ease;
@@ -784,7 +784,7 @@ p {
   }
 
   .navbar {
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     justify-content: flex-end;
   }
 
@@ -834,8 +834,8 @@ p {
   .nav-button {
     width: 100%;
     text-align: left;
-    font-size: 1.1rem;
-    padding: 0.7rem 0;
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
   }
 
   .projects-grid,
@@ -861,6 +861,15 @@ p {
 }
 
 @media (max-width: 640px) {
+  /* Section titles a bit smaller on mobile */
+  .about-title,
+  .projects-title,
+  .experience-title,
+  .contact-title {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+
   /* About: smaller body copy */
   .about-text p,
   .skills-title,
@@ -876,11 +885,21 @@ p {
   .console-controls {
     padding: 0.9rem 1rem 1.1rem 1rem;
   }
+  .titlebar-filename {
+    font-size: 0.62rem;
+  }
   .console-card-title {
     font-size: 0.9rem !important;
   }
   .console-card-text {
     font-size: 0.75rem !important;
+  }
+  .console-github-icon-img {
+    width: 18px;
+    height: 18px;
+  }
+  .btn-inner {
+    font-size: 0.6rem;
   }
 
   /* Experience cards: smaller logo, tighter padding, smaller text */
