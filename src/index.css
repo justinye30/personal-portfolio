@@ -343,6 +343,14 @@ p {
   max-width: 62ch;
 }
 
+/* Only widen the paragraph once the screen is large enough that 62ch
+   would otherwise leave a lot of empty space on the right. */
+@media (min-width: 1600px) {
+  .about-text {
+    max-width: 80ch;
+  }
+}
+
 .about-text p {
   font-size: 1.1rem;
   line-height: 1.75;
@@ -371,6 +379,9 @@ p {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
+  /* Cap the width so the columns keep their normal spacing on typical
+     screens but stop spreading further apart on very wide ones. */
+  max-width: 58rem;
 }
 
 .skills-column-title {
@@ -417,24 +428,16 @@ p {
 /* Projects Section */
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Cards stretch to fill the row symmetrically (like the original), but the
+     column count grows with the screen: whenever there's room for another
+     ~19rem card, auto-fill adds one (3 -> 4 -> 5), otherwise 2 -> 1 as it
+     shrinks. min(19rem, 100%) prevents overflow on very narrow screens. */
+  grid-template-columns: repeat(auto-fill, minmax(min(19rem, 100%), 1fr));
   gap: 2rem;
   width: calc(100% + 8rem);
-  max-width: 78rem;
   margin-left: -8rem;
   position: relative;
   z-index: 2;
-}
-
-@media (max-width: 1024px) {
-  .projects-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 768px) {
-  .projects-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .retro-console-card {
@@ -860,14 +863,15 @@ p {
   .home-text h2 {
     font-size: 1.15rem;
   }
-}
 
-@media (max-width: 640px) {
+  /* Content-sized skill columns can overflow narrow screens -> stack them */
   .skills-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+}
 
+@media (max-width: 640px) {
   /* About: smaller body copy */
   .about-text p,
   .skills-title,
