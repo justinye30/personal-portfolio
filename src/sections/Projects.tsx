@@ -35,7 +35,7 @@ const projectData: Project[] = [
   },
   {
     id: 2,
-    title: "Pixlr",
+    title: "Pixler",
     description: "Multi-level 2D platformer game with structured gameplay and animation systems",
     tags: ["Unity", "C#"],
     githubUrl: "https://github.com/justinye30/Pixlr-2D-platformer-game",
