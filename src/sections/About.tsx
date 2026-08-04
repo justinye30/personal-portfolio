@@ -56,6 +56,7 @@ function About() {
                   <li>Express</li>
                 </ul>
               </li>
+              <li>C/C++</li>
               <li>C#</li>
               <li>PHP</li>
             </ul>
