@@ -16,14 +16,14 @@ function Experience() {
     {
       id: 1,
       company: "Develop For Good",
-      role: "Technical Manager",
+      role: "Technical Manager Intern",
       duration: "May 2026 - August 2026",
       imageUrl: developforgood,
     },
     {
       id: 2,
       company: "Sharkbyte",
-      role: "Software Development Intern",
+      role: "Software Developer Intern",
       duration: "June 2024 - July 2024",
       imageUrl: sharkbyte,
     },
