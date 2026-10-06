@@ -13,6 +13,15 @@ export const HILL = { x: -80, z: 40, r: 26, h: 15 };
 export const CAMP = { x: 42, z: 50 };
 export const STONES = { x: HILL.x, z: HILL.z };
 
+// Log cabin behind the campfire. Local +z is the front (door) wall.
+export const CABIN = { x: CAMP.x + 9, z: CAMP.z - 15, rot: -0.45, w: 13, d: 10 };
+
+// The inscribed stone in the circle (experience), on the south side. Angle is around the
+// circle centre; its face points outward so the camera looks back across the circle with
+// the lake in the background.
+export const TABLET_SLOT = 3;
+export const TABLET = { a: (TABLET_SLOT / 11) * Math.PI * 2 + 0.07, r: 8.8, w: 4.8, h: 5.2, d: 1.1 };
+
 const n1 = createNoise2D(11);
 const n2 = createNoise2D(23);
 const n3 = createNoise2D(37);
@@ -25,7 +34,7 @@ export const noiseB = n4;
 export const PATHS: [number, number][][] = [
   [[-4, 12], [6, 26], [22, 42], [36, 50]],
   [[6, 26], [-18, 36], [-44, 42], [-66, 41]],
-  [[44, 44], [56, 22], [64, 0], [70, -20]],
+  [[44, 46], [62, 44], [65, 22], [65, 0], [70, -20]],
 ];
 
 export function lakeDistance(x: number, z: number) {
@@ -65,6 +74,10 @@ export function heightAt(x: number, z: number) {
   const dc = Math.hypot(x - CAMP.x, z - CAMP.z);
   land = lerp(land, CAMP_H, smoothstep(16, 7, dc));
 
+  // level ground under the cabin
+  const dk = Math.hypot(x - CABIN.x, z - CABIN.z);
+  land = lerp(land, CAMP_H, smoothstep(15, 9.5, dk));
+
   // flatten the hilltop a little for the stone circle
   const ds = Math.hypot(x - STONES.x, z - STONES.z);
   land = lerp(land, baseLand(STONES.x, STONES.z) - 0.6, smoothstep(13, 4, ds) * 0.85);
@@ -97,4 +110,51 @@ export function pathDistance(x: number, z: number) {
 
 export function distanceToSegment(px: number, pz: number, a: [number, number], b: [number, number]) {
   return segDist(px, pz, a[0], a[1], b[0], b[1]);
+}
+
+export const CABIN_Y = CAMP_H - 0.1;
+
+/** Lowest ground within radius r of (x, z): seat objects here so no edge hovers on a slope. */
+export function groundMin(x: number, z: number, r: number) {
+  let m = heightAt(x, z);
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2;
+    m = Math.min(m, heightAt(x + Math.cos(a) * r, z + Math.sin(a) * r));
+  }
+  return m;
+}
+
+/** Cabin-local coordinates (origin at floor centre, +z = door side) to world space. */
+export function cabinToWorld(lx: number, ly: number, lz: number): [number, number, number] {
+  const c = Math.cos(CABIN.rot);
+  const s = Math.sin(CABIN.rot);
+  return [CABIN.x + lx * c + lz * s, CABIN_Y + ly, CABIN.z - lx * s + lz * c];
+}
+
+/** World-space frame of the inscribed stone's face. */
+export function tabletFrame() {
+  const groundY = heightAt(STONES.x, STONES.z);
+  const nx = Math.cos(TABLET.a);
+  const nz = Math.sin(TABLET.a);
+  const x = STONES.x + nx * TABLET.r;
+  const z = STONES.z + nz * TABLET.r;
+  // seat on the lowest point of its own footprint (width along `right`, depth along the
+  // normal) and sink slightly, so no edge hovers on the slope
+  let low = Infinity;
+  for (const su of [-1, -0.5, 0, 0.5, 1]) {
+    for (const sv of [-1, 1]) {
+      const px = x + nz * su * (TABLET.w / 2) + nx * sv * (TABLET.d / 2);
+      const pz = z - nx * su * (TABLET.w / 2) + nz * sv * (TABLET.d / 2);
+      low = Math.min(low, heightAt(px, pz));
+    }
+  }
+  const baseY = low - 0.35;
+  return {
+    base: [x, baseY, z] as [number, number, number],
+    center: [x + nx * (TABLET.d / 2), baseY + TABLET.h / 2, z + nz * (TABLET.d / 2)] as [number, number, number],
+    normal: [nx, 0, nz] as [number, number, number],
+    // screen-right when looking at the face
+    right: [nz, 0, -nx] as [number, number, number],
+    groundY,
+  };
 }

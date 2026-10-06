@@ -3,8 +3,10 @@ import type { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { CAMP, FOREST_CLEARING, STONES, heightAt } from './layout';
 import { createParticles } from './particles';
 import { createProps } from './props';
-import { SHOTS, type Shot } from './shots';
+import { CABIN_SHOT, SHOTS, type Shot } from './shots';
 import { SKY, createClouds, createDistantMountains, createSky } from './sky';
+import { createStars } from './stars';
+import { createTv } from './tv';
 import { createTerrain } from './terrain';
 import { createVegetation } from './vegetation';
 import { createWater } from './water';
@@ -18,17 +20,19 @@ interface Pose {
   pos: THREE.Vector3;
   target: THREE.Vector3;
   offset: THREE.Vector2;
+  waypoints: THREE.Vector3[];
+  night: number;
 }
 
 interface Travel {
   from: Pose;
   to: Pose;
-  c1: THREE.Vector3;
-  c2: THREE.Vector3;
+  curve: THREE.CatmullRomCurve3;
   start: number;
   duration: number;
   roll: number;
   isIntro: boolean;
+  fromIndex: number;
   index: number;
   near: boolean;
   cb: TravelCallbacks;
@@ -36,29 +40,12 @@ interface Travel {
 
 const REFLECTION_SCALE = 0.4;
 
+// Sine in/out keeps peak speed low (~1.6x average) so long flights don't feel whippy.
+const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
-
-function bezier(out: THREE.Vector3, p0: THREE.Vector3, p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, t: number) {
-  const u = 1 - t;
-  return out
-    .copy(p0)
-    .multiplyScalar(u * u * u)
-    .addScaledVector(p1, 3 * u * u * t)
-    .addScaledVector(p2, 3 * u * t * t)
-    .addScaledVector(p3, t * t * t);
-}
-
-function bezierTangent(out: THREE.Vector3, p0: THREE.Vector3, p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, t: number) {
-  const u = 1 - t;
-  return out
-    .copy(p1)
-    .sub(p0)
-    .multiplyScalar(3 * u * u)
-    .addScaledVector(new THREE.Vector3().subVectors(p2, p1), 6 * u * t)
-    .addScaledVector(new THREE.Vector3().subVectors(p3, p2), 3 * t * t);
-}
+const damp = (k: number, dt: number) => 1 - Math.exp(-k * dt);
 
 export class World {
   readonly renderer: THREE.WebGLRenderer;
@@ -68,7 +55,13 @@ export class World {
   private water: Reflector;
   private sky: THREE.Mesh;
   private clouds: THREE.Group;
-  private updateProps: (t: number) => void;
+  private updateProps: (t: number, doorOpen: number) => void;
+  private stars: ReturnType<typeof createStars>;
+  private tv: ReturnType<typeof createTv>;
+  private doorOpen = 0;
+  private night = 0;
+  private smoothLook = new THREE.Vector3();
+  private hasLook = false;
   private timeUniform = { value: 0 };
   private particleUniforms = { uTime: this.timeUniform, uScale: { value: 500 } };
   private reducedMotion: boolean;
@@ -155,10 +148,14 @@ export class World {
     const reflectionCam = (this.water as unknown as { getReflectionCamera(c: THREE.Camera): THREE.Camera }).getReflectionCamera(this.camera);
     reflectionCam.layers.disable(1);
 
+    this.stars = createStars(() => this.renderer.getPixelRatio());
+    scene.add(this.stars.group);
+
     scene.add(createVegetation(this.timeUniform));
     const props = createProps();
     scene.add(props.group);
     this.updateProps = props.update;
+    this.tv = createTv(props.tvScreen);
 
     const pu = this.particleUniforms;
     scene.add(
@@ -183,10 +180,13 @@ export class World {
     this.computePoses();
     const startPose = this.poses[startIndex];
     // intro: begin high above the valley and swoop down into the first stop
+    const introFrom = startPose.waypoints[0] ?? startPose.pos;
     const intro: Pose = {
-      pos: startPose.pos.clone().add(new THREE.Vector3(30, 90, 110)),
+      pos: introFrom.clone().add(new THREE.Vector3(30, 90, 110)),
       target: startPose.target.clone().add(new THREE.Vector3(0, 40, 0)),
       offset: startPose.offset.clone(),
+      waypoints: [],
+      night: startPose.night,
     };
     this.current = intro;
     this.resize();
@@ -233,14 +233,21 @@ export class World {
   private computePoses() {
     const portrait = this.isPortrait;
     this.poses = SHOTS.map((s: Shot) => {
-      const pos = new THREE.Vector3(...s.pos);
-      const target = new THREE.Vector3(...s.target);
-      if (portrait) {
+      const src = portrait && s.portrait ? s.portrait : s;
+      const pos = new THREE.Vector3(...src.pos);
+      const target = new THREE.Vector3(...src.target);
+      if (portrait && !s.portrait && !s.waypoints) {
         pos.sub(target).multiplyScalar(1.2).add(target);
         pos.y = Math.max(pos.y, heightAt(pos.x, pos.z) + 2.5);
       }
       const off = portrait ? s.mobileOffset : s.offset;
-      return { pos, target, offset: new THREE.Vector2(off[0], off[1]) };
+      return {
+        pos,
+        target,
+        offset: new THREE.Vector2(off[0], off[1]),
+        waypoints: (s.waypoints ?? []).map((w) => new THREE.Vector3(...w)),
+        night: s.night ? 1 : 0,
+      };
     });
   }
 
@@ -279,18 +286,28 @@ export class World {
     this.startTravel(index, cb, this.reducedMotion ? 0 : undefined, false);
   }
 
+  /** Tune the cabin TV to a project (or back to the idle screen with null). */
+  showProject(index: number | null) {
+    this.tv.show(index);
+  }
+
   private snapshotPose(): Pose {
     return {
       pos: this.camera.position.clone(),
       target: this.lastLook.clone(),
       offset: this.tmpOff.clone(),
+      waypoints: [],
+      night: this.night,
     };
   }
 
   private startTravel(index: number, cb: TravelCallbacks, duration: number | undefined, isIntro: boolean) {
-    const from = isIntro ? this.current : this.travel ? this.snapshotPose() : this.current;
+    const interrupted = !isIntro && this.travel !== null;
+    const from = isIntro ? this.current : interrupted ? this.snapshotPose() : this.current;
+    const fromIndex = this.index;
     const to = this.poses[index];
     this.index = index;
+    if (fromIndex === CABIN_SHOT && index !== CABIN_SHOT) this.tv.show(null);
 
     if (duration === 0) {
       this.travel = null;
@@ -300,28 +317,38 @@ export class World {
       return;
     }
 
-    const d = from.pos.distanceTo(to.pos);
-    const dir = new THREE.Vector3().subVectors(to.pos, from.pos);
-    const lift = isIntro ? 0 : 8 + d * 0.2;
-    const c1 = from.pos.clone().addScaledVector(dir, 0.28);
-    c1.y = Math.max(c1.y, from.pos.y) + lift;
-    const c2 = from.pos.clone().addScaledVector(dir, 0.72);
-    c2.y = Math.max(c2.y, to.pos.y) + lift * 0.75;
+    // leave the way we came in, glide over, then thread the destination's waypoints
+    const exit = isIntro || interrupted ? [] : [...from.waypoints].reverse();
+    const pts = [from.pos.clone(), ...exit.map((p) => p.clone())];
+    const a = pts[pts.length - 1];
+    const b = to.waypoints[0] ?? to.pos;
+    const d = a.distanceTo(b);
+    if (!isIntro && d > 12) {
+      const mid = a.clone().lerp(b, 0.5);
+      mid.y = Math.max(a.y, b.y) + 6 + d * 0.14;
+      pts.push(mid);
+    }
+    pts.push(...to.waypoints.map((p) => p.clone()), to.pos.clone());
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+    const length = curve.getLength();
 
-    // bank into the turn
+    // bank gently into the turn
     const fromFwd = new THREE.Vector3().subVectors(from.target, from.pos).setY(0).normalize();
     const toFwd = new THREE.Vector3().subVectors(to.target, to.pos).setY(0).normalize();
     const turn = fromFwd.x * toFwd.z - fromFwd.z * toFwd.x;
+    const threaded = exit.length > 0 || to.waypoints.length > 0;
 
     this.travel = {
       from,
       to,
-      c1,
-      c2,
+      curve,
       start: performance.now() / 1000,
-      duration: duration ?? THREE.MathUtils.clamp(1.25 + d / 380, 1.4, 2.1),
-      roll: isIntro ? 0 : THREE.MathUtils.clamp(turn, -1, 1) * 0.09,
+      duration:
+        duration ??
+        THREE.MathUtils.clamp(2.1 + length / 260, 2.4, 3.4) + (to.waypoints.length ? 0.9 : 0) + (exit.length ? 0.6 : 0),
+      roll: isIntro ? 0 : THREE.MathUtils.clamp(turn, -1, 1) * (threaded ? 0.03 : 0.05),
       isIntro,
+      fromIndex,
       index,
       near: false,
       cb,
@@ -330,12 +357,22 @@ export class World {
 
   private frame = () => {
     const now = performance.now() / 1000;
-    const dt = Math.min(now - this.last, 0.1);
+    // animations use a capped step; smoothing uses real elapsed time so a slow frame
+    // never leaves the camera lagging behind its target
+    const realDt = Math.min(now - this.last, 1);
+    const dt = Math.min(realDt, 0.1);
     this.last = now;
     this.timeUniform.value += dt;
     const t = this.timeUniform.value;
 
-    this.updateProps(t);
+    // door opens for any trip into or out of the cabin, and stays open while we're inside
+    const tr0 = this.travel;
+    const doorTarget = tr0
+      ? tr0.index === CABIN_SHOT || tr0.fromIndex === CABIN_SHOT ? 1 : 0
+      : this.index === CABIN_SHOT ? 1 : 0;
+    this.doorOpen += (doorTarget - this.doorOpen) * damp(2.5, realDt);
+    this.updateProps(t, easeInOutCubic(this.doorOpen));
+    this.tv.update(t, dt);
     this.clouds.rotation.y += dt * 0.003;
     (this.water.material as THREE.ShaderMaterial).uniforms.uTime.value = t;
 
@@ -351,23 +388,24 @@ export class World {
     const tr = this.travel;
     if (tr) {
       const raw = clamp01((now - tr.start) / tr.duration);
-      const e = tr.isIntro ? easeOutCubic(raw) : easeInOutCubic(raw);
-      bezier(pos, tr.from.pos, tr.c1, tr.c2, tr.to.pos, e);
-      const lookT = easeInOutCubic(clamp01(raw * 1.15 - 0.05));
+      const e = tr.isIntro ? easeOutCubic(raw) : easeInOutSine(raw);
+      tr.curve.getPointAt(e, pos);
+      const lookT = easeInOutSine(clamp01(raw * 1.1 - 0.05));
       look.lerpVectors(tr.from.target, tr.to.target, lookT);
-      // mid-flight, look where we're flying
-      bezierTangent(this.tmpTan, tr.from.pos, tr.c1, tr.c2, tr.to.pos, e);
+      // mid-flight, drift the gaze toward where we're flying
+      tr.curve.getTangentAt(Math.min(e, 0.999), this.tmpTan);
       if (this.tmpTan.lengthSq() > 1e-6) {
         this.tmpTan.normalize();
         this.tmpTan.y = Math.min(this.tmpTan.y, 0.05);
         const fwd = this.tmpFwd.copy(pos).addScaledVector(this.tmpTan, 60);
-        const w = tr.isIntro ? 0 : Math.pow(Math.sin(Math.PI * raw), 2) * 0.55;
+        const w = tr.isIntro ? 0 : Math.pow(Math.sin(Math.PI * raw), 2) * 0.35;
         look.lerp(fwd, w);
       }
       const pulse = Math.pow(Math.sin(Math.PI * raw), 2);
-      fov += pulse * (tr.isIntro ? 4 : 14);
+      fov += pulse * (tr.isIntro ? 3 : 6);
       roll = Math.sin(Math.PI * raw) * tr.roll;
       this.tmpOff.lerpVectors(tr.from.offset, tr.to.offset, e);
+      this.night = THREE.MathUtils.lerp(tr.from.night, tr.to.night, easeInOutSine(clamp01(raw * 1.3 - 0.15)));
       idle = raw;
 
       const floor = heightAt(pos.x, pos.z) + 2.2;
@@ -394,6 +432,13 @@ export class World {
     pos.x += Math.sin(t * 0.21) * sway;
     pos.y += Math.sin(t * 0.33) * sway * 0.5;
     pos.z += Math.cos(t * 0.17) * sway * 0.6;
+    // damp the gaze so path corners (doorways, waypoint joins) never snap the view
+    if (!this.hasLook) {
+      this.smoothLook.copy(look);
+      this.hasLook = true;
+    }
+    this.smoothLook.lerp(look, damp(tr ? 4 : 6, realDt));
+    look.copy(this.smoothLook);
     cam.position.copy(pos);
     cam.lookAt(look);
     this.lastLook.copy(look);
@@ -411,6 +456,9 @@ export class World {
     cam.updateProjectionMatrix();
 
     this.sky.position.copy(cam.position);
+    this.stars.group.position.copy(cam.position);
+    (this.sky.material as THREE.ShaderMaterial).uniforms.uNight.value = this.night;
+    this.stars.update(t, this.night);
     this.renderer.render(this.scene, cam);
     if (this.readyFired) this.adaptQuality(dt);
 
@@ -432,6 +480,7 @@ export class World {
       else mat?.dispose();
     });
     this.water.dispose();
+    this.tv.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }

@@ -1,6 +1,4 @@
 import { SECTIONS, pad2 } from '../sectionConfig';
-import Footer from './Footer';
-import { ArrowIcon, GithubIcon, LinkedinIcon, MailIcon } from './Icons';
 import Navbar from './Navbar';
 
 interface HudProps {
@@ -9,23 +7,9 @@ interface HudProps {
 }
 
 function Hud({ active, onNavigate }: HudProps) {
-  const last = SECTIONS.length - 1;
   return (
     <>
       <Navbar active={active} onNavigate={onNavigate} />
-
-      <div className="hud-socials">
-        <a href="https://github.com/justinye30" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <GithubIcon />
-        </a>
-        <a href="https://www.linkedin.com/in/justin-ye0/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <LinkedinIcon />
-        </a>
-        <a href="mailto:justinye787@gmail.com" aria-label="Email">
-          <MailIcon />
-        </a>
-        <span className="hud-socials-line" />
-      </div>
 
       <div className="hud-bottom">
         <div className="hud-progress" aria-live="polite">
@@ -53,18 +37,7 @@ function Hud({ active, onNavigate }: HudProps) {
           <span className="hint-desktop">Scroll or press <kbd>→</kbd> to explore</span>
           <span className="hint-touch">Swipe to explore</span>
         </div>
-
-        <div className="hud-arrows">
-          <button type="button" className="hud-arrow" onClick={() => onNavigate(active - 1)} disabled={active === 0} aria-label="Previous location">
-            <ArrowIcon direction="left" />
-          </button>
-          <button type="button" className="hud-arrow" onClick={() => onNavigate(active + 1)} disabled={active === last} aria-label="Next location">
-            <ArrowIcon direction="right" />
-          </button>
-        </div>
       </div>
-
-      <Footer />
     </>
   );
 }

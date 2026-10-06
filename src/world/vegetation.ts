@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
+  CABIN,
   CAMP,
   FOREST,
   FOREST_CLEARING,
@@ -108,6 +109,11 @@ function inSightline(x: number, z: number, pad: number) {
     const a: [number, number] = [s.pos[0], s.pos[2]];
     const b: [number, number] = [s.target[0], s.target[2]];
     if (distanceToSegment(x, z, a, b) < pad) return true;
+    // keep the approach path clear too (e.g. the walk up to the cabin door)
+    const pts = [...(s.waypoints ?? []), s.pos];
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (distanceToSegment(x, z, [pts[i][0], pts[i][2]], [pts[i + 1][0], pts[i + 1][2]]) < pad) return true;
+    }
   }
   return false;
 }
@@ -173,6 +179,7 @@ export function createVegetation(timeUniform: { value: number }) {
 
   const reserved = (x: number, z: number, pad: number) =>
     Math.hypot(x - CAMP.x, z - CAMP.z) < 17 + pad ||
+    Math.hypot(x - CABIN.x, z - CABIN.z) < 11 + pad ||
     Math.hypot(x - STONES.x, z - STONES.z) < 15 + pad ||
     Math.hypot(x - FOREST_CLEARING.x, z - FOREST_CLEARING.z) < FOREST_CLEARING.r + pad ||
     inSightline(x, z, 4 + pad) ||
@@ -315,6 +322,7 @@ export function createVegetation(timeUniform: { value: number }) {
     if (lakeDistance(x, z) < 1.13) return;
     if (pathDistance(x, z) < 2.2) return;
     if (Math.hypot(x - CAMP.x, z - CAMP.z) < 4.5) return;
+    if (Math.hypot(x - CABIN.x, z - CABIN.z) < 9.5) return;
     for (const [hx, hz] of hotspots) if (Math.hypot(x - hx, z - hz) < 4) return;
     if (slopeAt(x, z) > 0.6) return;
     q.setFromAxisAngle(up, rand() * Math.PI * 2);

@@ -1,5 +1,4 @@
 import type { ComponentType, SVGProps } from 'react';
-import SectionHeading from '../components/SectionHeading';
 import { ExternalIcon, GithubIcon, LinkedinIcon, MailIcon } from '../components/Icons';
 import { rv } from '../components/reveal';
 
@@ -37,12 +36,10 @@ function Contact() {
   ];
 
   return (
-    <div className="panel panel-left contact-panel" data-scroll>
-      <SectionHeading index={4} title="Contact Me!" />
-
+    <div className="sky-contact">
       <ul className="contact-list">
         {contactLinks.map(({ id, type, label, url, Icon }, index) => (
-          <li key={id} className="rv" style={rv(index + 2)}>
+          <li key={id} className="rv" style={rv(index)}>
             <a
               href={url}
               target="_blank"

@@ -26,6 +26,9 @@ export function createSky() {
       uLow: { value: SKY.low },
       uSun: { value: SKY.sun },
       uSunDir: { value: SUN_DIR },
+      uNight: { value: 0 },
+      uNightTop: { value: new THREE.Color('#25265e') },
+      uNightMid: { value: new THREE.Color('#6a5aa6') },
     },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
@@ -41,13 +44,19 @@ export function createSky() {
       uniform vec3 uLow;
       uniform vec3 uSun;
       uniform vec3 uSunDir;
+      uniform float uNight;
+      uniform vec3 uNightTop;
+      uniform vec3 uNightMid;
       varying vec3 vDir;
       void main() {
         vec3 dir = normalize(vDir);
         float h = dir.y;
         float sd = max(dot(dir, uSunDir), 0.0);
-        vec3 col = mix(uHorizon, uMid, smoothstep(0.0, 0.28, h));
-        col = mix(col, uTop, smoothstep(0.22, 0.85, h));
+        // dusk deepens the upper sky while the horizon keeps its sunset glow
+        vec3 mid = mix(uMid, uNightMid, uNight * 0.75);
+        vec3 top = mix(uTop, uNightTop, uNight);
+        vec3 col = mix(uHorizon, mid, smoothstep(0.0, 0.28 + uNight * 0.1, h));
+        col = mix(col, top, smoothstep(0.22, 0.85 - uNight * 0.2, h));
         col = mix(col, uLow, smoothstep(0.0, -0.25, h));
         // warm the horizon around the sun
         col = mix(col, uSun, pow(sd, 6.0) * 0.55 * (1.0 - smoothstep(0.0, 0.5, h)));
@@ -137,11 +146,14 @@ export function createDistantMountains() {
       const pt = (a: number, h: number, inset: number) =>
         [Math.cos(a) * (L.radius - inset), h, Math.sin(a) * (L.radius - inset) - 40] as const;
       const rows = [
-        [pt(a0, -40, -60), pt(a1, -40, -60)],
+        // skirt: starts just under the valley floor near the terrain edge and rises into the
+        // range, so high camera angles never see sky through the gap below the mountains
+        [pt(a0, -2, L.radius - 250), pt(a1, -2, L.radius - 250)],
+        [pt(a0, 12, 130), pt(a1, 12, 130)],
         [pt(a0, h0 * 0.55, 30 + (i % 3) * 8), pt(a1, h1 * 0.55, 30 + ((i + 1) % 3) * 8)],
         [pt(a0, h0, 55), pt(a1, h1, 55)],
       ];
-      for (let rI = 0; rI < 2; rI++) {
+      for (let rI = 0; rI < rows.length - 1; rI++) {
         const [b0, b1] = rows[rI];
         const [t0, t1] = rows[rI + 1];
         // two triangles, wound to face the valley

@@ -1,11 +1,13 @@
 import * as THREE from 'three';
-import { CAMP, LAKE, STONES, heightAt } from './layout';
+import { createCabin } from './cabin';
+import { createInscription } from './inscription';
+import { CABIN, CABIN_Y, CAMP, LAKE, STONES, TABLET_SLOT, groundMin, heightAt } from './layout';
+import { stoneMaterial } from './materials';
 import { mulberry32 } from './noise';
 
 const wood = new THREE.MeshLambertMaterial({ color: '#a2724f', flatShading: true });
 const darkWood = new THREE.MeshLambertMaterial({ color: '#6f4b37', flatShading: true });
-const stone = new THREE.MeshLambertMaterial({ color: '#a59ab3', flatShading: true });
-const roof = new THREE.MeshLambertMaterial({ color: '#8c4b45', flatShading: true });
+const stone = stoneMaterial;
 const glow = new THREE.MeshBasicMaterial({ color: '#ffd28a' });
 
 function add(group: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) {
@@ -84,34 +86,6 @@ function createDock() {
   return { group, boat };
 }
 
-function createCabin() {
-  const group = new THREE.Group();
-  group.name = 'cabin';
-  const walls = add(group, new THREE.BoxGeometry(7.5, 4.2, 6), wood, 0, 2.1, 0);
-  walls.castShadow = true;
-  // log stripes
-  for (let y = 0.5; y < 4.2; y += 0.7) {
-    add(group, new THREE.CylinderGeometry(0.2, 0.2, 7.9, 6).rotateZ(Math.PI / 2), darkWood, 0, y, 3.02);
-  }
-  const shape = new THREE.Shape();
-  shape.moveTo(-4.6, 0);
-  shape.lineTo(4.6, 0);
-  shape.lineTo(0, 3.4);
-  shape.closePath();
-  const roofGeo = new THREE.ExtrudeGeometry(shape, { depth: 7.4, bevelEnabled: false });
-  roofGeo.translate(0, 0, -3.7);
-  add(group, roofGeo, roof, 0, 4.2, 0);
-  add(group, new THREE.BoxGeometry(1.4, 2.5, 0.2), darkWood, 1.6, 1.25, 3.15);
-  const win = add(group, new THREE.BoxGeometry(1.3, 1.1, 0.12), glow, -1.9, 2.3, 3.25);
-  win.castShadow = false;
-  add(group, new THREE.BoxGeometry(1, 3.4, 1), stone, -2.4, 6.4, -1.2);
-  // stacked firewood
-  for (let i = 0; i < 5; i++) {
-    add(group, new THREE.CylinderGeometry(0.22, 0.22, 1.6, 6).rotateX(Math.PI / 2), darkWood, 4.3, 0.25 + (i % 2) * 0.38, 1 - i * 0.42);
-  }
-  return group;
-}
-
 function createCampfire() {
   const group = new THREE.Group();
   group.name = 'campfire';
@@ -148,39 +122,44 @@ function createCampfire() {
   return { group, flames, light };
 }
 
-function createStoneCircle() {
+function createStoneCircle(centerY: number) {
   const group = new THREE.Group();
+  // local height of the ground under a stone, sunk a little so its base is buried
+  const seat = (x: number, z: number, r: number) => groundMin(STONES.x + x, STONES.z + z, r) - centerY - 0.6;
   group.name = 'stones';
   const rand = mulberry32(13);
   const count = 11;
   const radius = 8.5;
-  const pillars: { x: number; z: number; h: number; a: number }[] = [];
+  const pillars: { i: number; x: number; z: number; top: number }[] = [];
   for (let i = 0; i < count; i++) {
     const a = (i / count) * Math.PI * 2 + rand() * 0.1;
     const x = Math.cos(a) * radius;
     const z = Math.sin(a) * radius;
+    // this slot holds the inscribed stone (see inscription.ts)
+    if (i === TABLET_SLOT) continue;
     if (i === 7) {
       // a fallen stone
-      const m = add(group, jitteredStone(1.5, 4.6, 1, i + 1), stone, x, 0.4, z);
+      const m = add(group, jitteredStone(1.5, 4.6, 1, i + 1), stone, x, seat(x, z, 2.4) + 0.95, z);
       m.rotation.set(Math.PI / 2 - 0.1, a, 0.2);
       continue;
     }
     const h = 4.2 + rand() * 2.2;
-    pillars.push({ x, z, h, a });
-    const m = add(group, jitteredStone(1.5, h, 1, i + 1), stone, x, h / 2 - 0.3, z);
+    const base = seat(x, z, 1.0);
+    pillars.push({ i, x, z, top: base + h });
+    const m = add(group, jitteredStone(1.5, h, 1, i + 1), stone, x, base + h / 2, z);
     m.rotation.y = -a + Math.PI / 2;
     m.rotation.z = (rand() - 0.5) * 0.08;
   }
   // lintels across two pairs
   for (const [ia, ib] of [[0, 1], [4, 5]]) {
-    const pa = pillars[ia];
-    const pb = pillars[ib];
-    const top = Math.min(pa.h, pb.h) - 0.25;
+    const pa = pillars.find((p) => p.i === ia)!;
+    const pb = pillars.find((p) => p.i === ib)!;
+    const top = Math.min(pa.top, pb.top) - 0.25;
     const lintel = add(group, jitteredStone(Math.hypot(pa.x - pb.x, pa.z - pb.z) + 1.6, 0.8, 1.1, 90 + ia), stone, (pa.x + pb.x) / 2, top, (pa.z + pb.z) / 2);
     lintel.rotation.y = -Math.atan2(pb.z - pa.z, pb.x - pa.x);
   }
   // altar + floating crystal
-  add(group, jitteredStone(2.6, 0.9, 1.6, 77), stone, 0, 0.3, 0);
+  add(group, jitteredStone(2.6, 0.9, 1.6, 77), stone, 0, seat(0, 0, 1.4) + 0.75, 0);
   const crystal = new THREE.Mesh(
     new THREE.OctahedronGeometry(0.75, 0),
     new THREE.MeshLambertMaterial({ color: '#d9b8ff', emissive: '#a777ff', emissiveIntensity: 1.4, flatShading: true }),
@@ -204,15 +183,18 @@ export function createProps() {
   group.add(fire.group);
 
   const cabin = createCabin();
-  cabin.position.set(CAMP.x + 6, campY - 0.1, CAMP.z - 9);
-  cabin.rotation.y = -0.45;
-  group.add(cabin);
+  cabin.group.position.set(CABIN.x, CABIN_Y, CABIN.z);
+  cabin.group.rotation.y = CABIN.rot;
+  group.add(cabin.group);
 
-  const stones = createStoneCircle();
-  stones.group.position.set(STONES.x, heightAt(STONES.x, STONES.z), STONES.z);
+  const stonesY = heightAt(STONES.x, STONES.z);
+  const stones = createStoneCircle(stonesY);
+  stones.group.position.set(STONES.x, stonesY, STONES.z);
   group.add(stones.group);
+  group.add(createInscription());
 
-  const update = (t: number) => {
+  const update = (t: number, doorOpen: number) => {
+    cabin.update(t, doorOpen);
     fire.flames.children.forEach((f, i) => {
       const k = 1 + Math.sin(t * (9 + i * 3) + i) * 0.12 + Math.sin(t * 17 + i * 2) * 0.06;
       f.scale.set(1 + Math.sin(t * 7 + i) * 0.06, k, 1 + Math.cos(t * 6 + i) * 0.06);
@@ -225,5 +207,5 @@ export function createProps() {
     dock.boat.rotation.z = Math.sin(t * 0.9) * 0.04;
   };
 
-  return { group, update };
+  return { group, update, tvScreen: cabin.screen };
 }

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import Hud from './components/Hud';
 import { SECTIONS } from './sectionConfig';
 import Home from './sections/Home';
-import About from './sections/About';
 import Projects from './sections/Projects';
 import Experience from './sections/Experience';
 import Contact from './sections/Contact';
@@ -239,7 +238,8 @@ function App() {
     };
   }, [navigate]);
 
-  const stages = [<Home />, <About />, <Projects />, <Experience />, <Contact />];
+  const previewProject = useCallback((index: number) => worldRef.current?.showProject(index), []);
+  const stages = [<Home />, <Projects onPreview={previewProject} />, <Experience />, <Contact />];
 
   return (
     <div className={`app status-${status} ${travelling ? 'is-travelling' : ''}`}>

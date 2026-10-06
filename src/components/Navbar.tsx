@@ -25,11 +25,6 @@ function Navbar({ active, onNavigate }: NavbarProps) {
 
   return (
     <header className="navbar">
-      <button type="button" className="brand" onClick={() => select(0)} aria-label="Justin Ye — go to home">
-        <span className="brand-first">Justin</span>
-        <span className="brand-last">Ye</span>
-      </button>
-
       <button
         type="button"
         className={`nav-toggle ${menuOpen ? 'open' : ''}`}
