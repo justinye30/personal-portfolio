@@ -1,0 +1,229 @@
+import * as THREE from 'three';
+import { CAMP, LAKE, STONES, heightAt } from './layout';
+import { mulberry32 } from './noise';
+
+const wood = new THREE.MeshLambertMaterial({ color: '#a2724f', flatShading: true });
+const darkWood = new THREE.MeshLambertMaterial({ color: '#6f4b37', flatShading: true });
+const stone = new THREE.MeshLambertMaterial({ color: '#a59ab3', flatShading: true });
+const roof = new THREE.MeshLambertMaterial({ color: '#8c4b45', flatShading: true });
+const glow = new THREE.MeshBasicMaterial({ color: '#ffd28a' });
+
+function add(group: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) {
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  group.add(mesh);
+  return mesh;
+}
+
+function jitteredStone(w: number, h: number, d: number, seed: number) {
+  const rand = mulberry32(seed);
+  const g = new THREE.BoxGeometry(w, h, d, 1, 2, 1);
+  const pos = g.attributes.position as THREE.BufferAttribute;
+  const offsets = new Map<string, number[]>();
+  for (let i = 0; i < pos.count; i++) {
+    const key = `${pos.getX(i).toFixed(2)},${pos.getY(i).toFixed(2)},${pos.getZ(i).toFixed(2)}`;
+    if (!offsets.has(key)) offsets.set(key, [(rand() - 0.5) * w * 0.35, (rand() - 0.5) * 0.3, (rand() - 0.5) * d * 0.35]);
+    const o = offsets.get(key)!;
+    const taper = pos.getY(i) > 0 ? 0.8 : 1;
+    pos.setXYZ(i, pos.getX(i) * taper + o[0], pos.getY(i) + o[1], pos.getZ(i) * taper + o[2]);
+  }
+  const flat = g.toNonIndexed();
+  g.dispose();
+  flat.computeVertexNormals();
+  return flat;
+}
+
+function createDock() {
+  const group = new THREE.Group();
+  group.name = 'dock';
+  const x = -1;
+  // find the shoreline walking north from land
+  let shoreZ = 20;
+  for (let z = 20; z > LAKE.z; z -= 0.25) {
+    if (heightAt(x, z) < 0.35) {
+      shoreZ = z;
+      break;
+    }
+  }
+  const start = shoreZ + 4;
+  const end = shoreZ - 13;
+  const deckY = 0.85;
+  const rand = mulberry32(42);
+  const plank = new THREE.BoxGeometry(2.8, 0.14, 0.5);
+  for (let z = start; z > end; z -= 0.58) {
+    const m = add(group, plank, rand() > 0.15 ? wood : darkWood, x, deckY + (rand() - 0.5) * 0.05, z);
+    m.rotation.y = (rand() - 0.5) * 0.04;
+  }
+  const post = new THREE.CylinderGeometry(0.13, 0.15, 3.2, 6);
+  for (let z = start - 0.5; z > end; z -= 3.4) {
+    add(group, post, darkWood, x - 1.35, deckY - 1.1, z);
+    add(group, post, darkWood, x + 1.35, deckY - 1.1, z);
+  }
+  // lantern at the end of the dock
+  add(group, new THREE.CylinderGeometry(0.09, 0.11, 2.2, 6), darkWood, x + 1.2, deckY + 1.1, end + 0.6);
+  const lantern = add(group, new THREE.BoxGeometry(0.42, 0.55, 0.42), glow, x + 1.2, deckY + 2.45, end + 0.6);
+  lantern.castShadow = false;
+  add(group, new THREE.ConeGeometry(0.38, 0.3, 4), darkWood, x + 1.2, deckY + 2.85, end + 0.6).rotation.y = Math.PI / 4;
+
+  // little rowboat tied to the dock
+  const boat = new THREE.Group();
+  const hullGeo = new THREE.SphereGeometry(1, 8, 4, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+  hullGeo.scale(1.15, 0.55, 2.7);
+  const hull = new THREE.Mesh(hullGeo, new THREE.MeshLambertMaterial({ color: '#c0664a', flatShading: true, side: THREE.DoubleSide }));
+  hull.castShadow = true;
+  boat.add(hull);
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 0.5), wood);
+  seat.position.y = -0.12;
+  boat.add(seat);
+  boat.position.set(x + 3.4, 0.38, end + 3.5);
+  boat.rotation.y = 0.18;
+  group.add(boat);
+
+  return { group, boat };
+}
+
+function createCabin() {
+  const group = new THREE.Group();
+  group.name = 'cabin';
+  const walls = add(group, new THREE.BoxGeometry(7.5, 4.2, 6), wood, 0, 2.1, 0);
+  walls.castShadow = true;
+  // log stripes
+  for (let y = 0.5; y < 4.2; y += 0.7) {
+    add(group, new THREE.CylinderGeometry(0.2, 0.2, 7.9, 6).rotateZ(Math.PI / 2), darkWood, 0, y, 3.02);
+  }
+  const shape = new THREE.Shape();
+  shape.moveTo(-4.6, 0);
+  shape.lineTo(4.6, 0);
+  shape.lineTo(0, 3.4);
+  shape.closePath();
+  const roofGeo = new THREE.ExtrudeGeometry(shape, { depth: 7.4, bevelEnabled: false });
+  roofGeo.translate(0, 0, -3.7);
+  add(group, roofGeo, roof, 0, 4.2, 0);
+  add(group, new THREE.BoxGeometry(1.4, 2.5, 0.2), darkWood, 1.6, 1.25, 3.15);
+  const win = add(group, new THREE.BoxGeometry(1.3, 1.1, 0.12), glow, -1.9, 2.3, 3.25);
+  win.castShadow = false;
+  add(group, new THREE.BoxGeometry(1, 3.4, 1), stone, -2.4, 6.4, -1.2);
+  // stacked firewood
+  for (let i = 0; i < 5; i++) {
+    add(group, new THREE.CylinderGeometry(0.22, 0.22, 1.6, 6).rotateX(Math.PI / 2), darkWood, 4.3, 0.25 + (i % 2) * 0.38, 1 - i * 0.42);
+  }
+  return group;
+}
+
+function createCampfire() {
+  const group = new THREE.Group();
+  group.name = 'campfire';
+  const rand = mulberry32(7);
+  const rock = new THREE.DodecahedronGeometry(0.42, 0);
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    const m = add(group, rock, stone, Math.cos(a) * 1.4, 0.15, Math.sin(a) * 1.4);
+    m.rotation.set(rand() * 3, rand() * 3, rand() * 3);
+  }
+  const log = new THREE.CylinderGeometry(0.16, 0.18, 2.2, 6);
+  for (let i = 0; i < 4; i++) {
+    const m = add(group, log, darkWood, 0, 0.45, 0);
+    m.rotation.set(0.9, (i / 4) * Math.PI * 2, 0, 'YXZ');
+  }
+  const flames = new THREE.Group();
+  const flameColors = ['#ff8a3d', '#ffb347', '#ffe08a'];
+  flameColors.forEach((c, i) => {
+    const f = new THREE.Mesh(new THREE.ConeGeometry(0.75 - i * 0.2, 2 - i * 0.4, 5), new THREE.MeshBasicMaterial({ color: c }));
+    f.position.y = 0.95 - i * 0.05;
+    f.rotation.y = i;
+    flames.add(f);
+  });
+  group.add(flames);
+
+  // seating logs
+  const bench = new THREE.CylinderGeometry(0.42, 0.42, 3.2, 7).rotateZ(Math.PI / 2);
+  add(group, bench, wood, 0, 0.4, 4.2).rotation.y = 0.15;
+  add(group, bench, wood, -4.1, 0.4, 0.6).rotation.y = Math.PI / 2 + 0.2;
+
+  const light = new THREE.PointLight('#ff9a4f', 40, 34, 1.4);
+  light.position.set(0, 2.2, 0);
+  group.add(light);
+  return { group, flames, light };
+}
+
+function createStoneCircle() {
+  const group = new THREE.Group();
+  group.name = 'stones';
+  const rand = mulberry32(13);
+  const count = 11;
+  const radius = 8.5;
+  const pillars: { x: number; z: number; h: number; a: number }[] = [];
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2 + rand() * 0.1;
+    const x = Math.cos(a) * radius;
+    const z = Math.sin(a) * radius;
+    if (i === 7) {
+      // a fallen stone
+      const m = add(group, jitteredStone(1.5, 4.6, 1, i + 1), stone, x, 0.4, z);
+      m.rotation.set(Math.PI / 2 - 0.1, a, 0.2);
+      continue;
+    }
+    const h = 4.2 + rand() * 2.2;
+    pillars.push({ x, z, h, a });
+    const m = add(group, jitteredStone(1.5, h, 1, i + 1), stone, x, h / 2 - 0.3, z);
+    m.rotation.y = -a + Math.PI / 2;
+    m.rotation.z = (rand() - 0.5) * 0.08;
+  }
+  // lintels across two pairs
+  for (const [ia, ib] of [[0, 1], [4, 5]]) {
+    const pa = pillars[ia];
+    const pb = pillars[ib];
+    const top = Math.min(pa.h, pb.h) - 0.25;
+    const lintel = add(group, jitteredStone(Math.hypot(pa.x - pb.x, pa.z - pb.z) + 1.6, 0.8, 1.1, 90 + ia), stone, (pa.x + pb.x) / 2, top, (pa.z + pb.z) / 2);
+    lintel.rotation.y = -Math.atan2(pb.z - pa.z, pb.x - pa.x);
+  }
+  // altar + floating crystal
+  add(group, jitteredStone(2.6, 0.9, 1.6, 77), stone, 0, 0.3, 0);
+  const crystal = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.75, 0),
+    new THREE.MeshLambertMaterial({ color: '#d9b8ff', emissive: '#a777ff', emissiveIntensity: 1.4, flatShading: true }),
+  );
+  crystal.scale.set(1, 1.6, 1);
+  crystal.position.y = 2.9;
+  group.add(crystal);
+  return { group, crystal };
+}
+
+export function createProps() {
+  const group = new THREE.Group();
+  group.name = 'props';
+
+  const dock = createDock();
+  group.add(dock.group);
+
+  const campY = heightAt(CAMP.x, CAMP.z);
+  const fire = createCampfire();
+  fire.group.position.set(CAMP.x, campY, CAMP.z);
+  group.add(fire.group);
+
+  const cabin = createCabin();
+  cabin.position.set(CAMP.x + 6, campY - 0.1, CAMP.z - 9);
+  cabin.rotation.y = -0.45;
+  group.add(cabin);
+
+  const stones = createStoneCircle();
+  stones.group.position.set(STONES.x, heightAt(STONES.x, STONES.z), STONES.z);
+  group.add(stones.group);
+
+  const update = (t: number) => {
+    fire.flames.children.forEach((f, i) => {
+      const k = 1 + Math.sin(t * (9 + i * 3) + i) * 0.12 + Math.sin(t * 17 + i * 2) * 0.06;
+      f.scale.set(1 + Math.sin(t * 7 + i) * 0.06, k, 1 + Math.cos(t * 6 + i) * 0.06);
+      f.rotation.y += 0.02 + i * 0.01;
+    });
+    fire.light.intensity = 38 + Math.sin(t * 11) * 5 + Math.sin(t * 23) * 3;
+    stones.crystal.rotation.y = t * 0.6;
+    stones.crystal.position.y = 2.9 + Math.sin(t * 1.3) * 0.25;
+    dock.boat.position.y = 0.38 + Math.sin(t * 1.1) * 0.06;
+    dock.boat.rotation.z = Math.sin(t * 0.9) * 0.04;
+  };
+
+  return { group, update };
+}

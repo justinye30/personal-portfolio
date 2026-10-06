@@ -1,11 +1,12 @@
-import SectionTitle from '../components/SectionTitle';
+import SectionHeading from '../components/SectionHeading';
+import { rv } from '../components/reveal';
 
 function About() {
   return (
-    <section id="about">
-      <SectionTitle text="A Little Bit About Myself" className="about-title" />
+    <div className="panel panel-left about-panel" data-scroll>
+      <SectionHeading index={1} title="A Little Bit About Myself" />
 
-      <div className="about-text">
+      <div className="about-text rv" style={rv(2)}>
         <p>
           Currently studying at the University of British Columbia,
           I have a passion for building software to help create
@@ -17,7 +18,7 @@ function About() {
         </p>
       </div>
 
-      <div className="skills-section">
+      <div className="skills-section rv" style={rv(3)}>
         <p className="skills-title">
           <strong>Technologies I have worked with:</strong>
         </p>
@@ -77,7 +78,7 @@ function About() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 

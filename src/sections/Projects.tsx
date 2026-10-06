@@ -9,9 +9,9 @@ import jobListingsVideo from '../assets/vid-job-listings.mp4';
 import osuRemakeVideo from '../assets/vid-osu-remake.mp4';
 import pixlrVideo from '../assets/vid-pixlr.mp4';
 import smartReaderVideo from '../assets/vid-smart-reader.mp4';
-import githubIconImg from '../assets/icon-github.webp';
-import SectionTitle from '../components/SectionTitle';
-import Reveal from '../components/Reveal';
+import SectionHeading from '../components/SectionHeading';
+import { GithubIcon } from '../components/Icons';
+import { rv } from '../components/reveal';
 
 interface Project {
   id: number;
@@ -70,7 +70,7 @@ const projectData: Project[] = [
   },
 ];
 
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({ project, index }: { project: Project; index: number }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleMouseEnter = () => {
@@ -87,75 +87,67 @@ function ProjectCard({ project }: { project: Project }) {
   };
 
   return (
-    <div
-      className="retro-console-card"
+    <article
+      className="project-card rv"
+      style={rv(index + 2)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="console-titlebar">
-        <div className="titlebar-dots"><span></span><span></span><span></span></div>
-        <span className="titlebar-filename">{project.title.replace(/\s+/g, '')}.log</span>
-        <div className="titlebar-status"></div>
-      </div>
-
-      <div className="screen-inner">
-        <img src={project.imageUrl} alt={project.title} className="screen-image" loading="lazy" decoding="async" />
+      <div className="project-media">
+        <img src={project.imageUrl} alt={project.title} className="project-image" loading="lazy" decoding="async" />
         {project.videoUrl && (
           <video
             ref={videoRef}
             src={project.videoUrl}
-            className="screen-video"
+            className="project-video"
             muted
             loop
             playsInline
             preload="none"
           />
         )}
+        <span className="project-index">{String(index + 1).padStart(2, '0')}</span>
       </div>
 
-      <div className="console-controls">
-        <div className="console-header-row">
-          <h2 className="console-card-title">{project.title}</h2>
+      <div className="project-body">
+        <div className="project-header">
+          <h2 className="project-title">{project.title}</h2>
           {project.githubUrl && (
             <a
               href={project.githubUrl}
-              className="console-github-icon"
+              className="project-github"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="View Source on GitHub"
+              aria-label={`View ${project.title} source on GitHub`}
             >
-              <img src={githubIconImg} alt="GitHub Link" className="console-github-icon-img" loading="lazy" decoding="async" />
+              <GithubIcon width={17} height={17} />
             </a>
           )}
         </div>
 
-        <p className="console-card-text">{project.description}</p>
+        <p className="project-text">{project.description}</p>
 
-        <div className="console-buttons-grid">
-          {project.tags.map((tag, idx) => (
-            <div key={idx} className="console-btn-tag">
-              <span className="btn-inner">{tag}</span>
-            </div>
+        <ul className="project-tags">
+          {project.tags.map((tag) => (
+            <li key={tag}>{tag}</li>
           ))}
-        </div>
+        </ul>
       </div>
-    </div>
+    </article>
   );
 }
 
 function Projects() {
   return (
-    <section id="projects">
-      <SectionTitle text="Some Things I've Built" className="projects-title" />
+    <div className="projects-layout">
+      <SectionHeading index={2} title="Some Things I've Built" className="projects-heading" />
 
-      <div className="projects-grid">
+      <div className="projects-strip" data-scroll>
         {projectData.map((project, index) => (
-          <Reveal key={project.id} direction="up" delay={(index % 3) * 100}>
-            <ProjectCard project={project} />
-          </Reveal>
+          <ProjectCard key={project.id} project={project} index={index} />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
