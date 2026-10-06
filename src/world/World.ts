@@ -21,6 +21,7 @@ interface Pose {
   target: THREE.Vector3;
   offset: THREE.Vector2;
   waypoints: THREE.Vector3[];
+  via: THREE.Vector3[];
   night: number;
 }
 
@@ -30,7 +31,9 @@ interface Travel {
   curve: THREE.CatmullRomCurve3;
   start: number;
   duration: number;
-  roll: number;
+  // portions of the flight spent turning away from the start view / into the end view
+  leaveSpan: number;
+  arriveFrom: number;
   isIntro: boolean;
   fromIndex: number;
   index: number;
@@ -46,6 +49,44 @@ const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const damp = (k: number, dt: number) => 1 - Math.exp(-k * dt);
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = clamp01((x - a) / (b - a));
+  return t * t * (3 - 2 * t);
+};
+
+const UP = new THREE.Vector3(0, 1, 0);
+// Spherical blend between two unit directions (handles near-opposite turns without flipping).
+function slerpDir(out: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, t: number) {
+  const d = THREE.MathUtils.clamp(a.dot(b), -1, 1);
+  if (d > 0.9995) return out.lerpVectors(a, b, t).normalize();
+  if (d < -0.999) return out.copy(a).applyAxisAngle(UP, Math.PI * t);
+  const theta = Math.acos(d);
+  const sin = Math.sin(theta);
+  const wa = Math.sin((1 - t) * theta) / sin;
+  const wb = Math.sin(t * theta) / sin;
+  const ax = a.x * wa + b.x * wb;
+  const ay = a.y * wa + b.y * wb;
+  const az = a.z * wa + b.z * wb;
+  return out.set(ax, ay, az).normalize();
+}
+
+// Height a drone should cruise at over (x, z): comfortably above the terrain and tree tops.
+function cruiseHeight(x: number, z: number) {
+  let h = Math.max(heightAt(x, z), 0);
+  for (const [dx, dz] of [[14, 0], [-14, 0], [0, 14], [0, -14]]) h = Math.max(h, heightAt(x + dx, z + dz));
+  return h + 24;
+}
+
+// Heading convention: yaw 0 looks north (-z), positive yaw turns right (east).
+const yawOf = (d: THREE.Vector3) => Math.atan2(d.x, -d.z);
+const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+
+// The camera always faces up the valley like the home view, turning at most this far either
+// way, and never swings around, even when flying back toward home.
+const FRONT_YAW = yawOf(new THREE.Vector3().subVectors(new THREE.Vector3(...SHOTS[0].target), new THREE.Vector3(...SHOTS[0].pos)));
+const MAX_TURN = THREE.MathUtils.degToRad(30);
+const LEAN = THREE.MathUtils.degToRad(20);
+const CRUISE_PITCH = -0.14;
 
 export class World {
   readonly renderer: THREE.WebGLRenderer;
@@ -60,8 +101,12 @@ export class World {
   private tv: ReturnType<typeof createTv>;
   private doorOpen = 0;
   private night = 0;
-  private smoothLook = new THREE.Vector3();
-  private hasLook = false;
+  private smoothDir = new THREE.Vector3();
+  private hasDir = false;
+  private tmpA = new THREE.Vector3();
+  private tmpB = new THREE.Vector3();
+  private tmpC = new THREE.Vector3();
+  private tmpDir = new THREE.Vector3();
   private timeUniform = { value: 0 };
   private particleUniforms = { uTime: this.timeUniform, uScale: { value: 500 } };
   private reducedMotion: boolean;
@@ -80,9 +125,7 @@ export class World {
 
   private tmpPos = new THREE.Vector3();
   private tmpLook = new THREE.Vector3();
-  private tmpTan = new THREE.Vector3();
   private tmpOff = new THREE.Vector2();
-  private tmpFwd = new THREE.Vector3();
   private tmpRight = new THREE.Vector3();
   private tmpUp = new THREE.Vector3();
   private lastLook = new THREE.Vector3();
@@ -186,6 +229,7 @@ export class World {
       target: startPose.target.clone().add(new THREE.Vector3(0, 40, 0)),
       offset: startPose.offset.clone(),
       waypoints: [],
+      via: [],
       night: startPose.night,
     };
     this.current = intro;
@@ -246,6 +290,7 @@ export class World {
         target,
         offset: new THREE.Vector2(off[0], off[1]),
         waypoints: (s.waypoints ?? []).map((w) => new THREE.Vector3(...w)),
+        via: (s.via ?? []).map((w) => new THREE.Vector3(...w)),
         night: s.night ? 1 : 0,
       };
     });
@@ -297,6 +342,7 @@ export class World {
       target: this.lastLook.clone(),
       offset: this.tmpOff.clone(),
       waypoints: [],
+      via: [],
       night: this.night,
     };
   }
@@ -317,26 +363,50 @@ export class World {
       return;
     }
 
-    // leave the way we came in, glide over, then thread the destination's waypoints
-    const exit = isIntro || interrupted ? [] : [...from.waypoints].reverse();
-    const pts = [from.pos.clone(), ...exit.map((p) => p.clone())];
-    const a = pts[pts.length - 1];
-    const b = to.waypoints[0] ?? to.pos;
-    const d = a.distanceTo(b);
-    if (!isIntro && d > 12) {
-      const mid = a.clone().lerp(b, 0.5);
-      mid.y = Math.max(a.y, b.y) + 6 + d * 0.14;
-      pts.push(mid);
-    }
-    pts.push(...to.waypoints.map((p) => p.clone()), to.pos.clone());
-    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
-    const length = curve.getLength();
+    // Flight plan, drone-style: back out through any doorway, pass the departure's scenic
+    // via-points, cruise above the treetops (only climbing when the ground demands it),
+    // then the destination's via-points and doorway.
+    const free = !isIntro && !interrupted;
+    const exit = free ? [...from.waypoints].reverse() : [];
+    const fromVia = free ? [...from.via].reverse() : [];
+    const toVia = isIntro ? [] : to.via;
+    const head = [from.pos, ...exit, ...fromVia].map((p) => p.clone());
+    const tail = [...toVia, ...to.waypoints, to.pos].map((p) => p.clone());
 
-    // bank gently into the turn
-    const fromFwd = new THREE.Vector3().subVectors(from.target, from.pos).setY(0).normalize();
-    const toFwd = new THREE.Vector3().subVectors(to.target, to.pos).setY(0).normalize();
-    const turn = fromFwd.x * toFwd.z - fromFwd.z * toFwd.x;
-    const threaded = exit.length > 0 || to.waypoints.length > 0;
+    const a = head[head.length - 1];
+    const b = tail[0];
+    const cruise: THREE.Vector3[] = [];
+    const span = Math.hypot(b.x - a.x, b.z - a.z);
+    if (!isIntro && span > 30) {
+      for (const f of [1 / 3, 2 / 3]) {
+        const p = a.clone().lerp(b, f);
+        p.y = Math.max(p.y, cruiseHeight(p.x, p.z));
+        cruise.push(p);
+      }
+    }
+    const build = () => {
+      const pts: THREE.Vector3[] = [];
+      for (const p of [...head, ...cruise, ...tail]) {
+        if (!pts.length || pts[pts.length - 1].distanceTo(p) > 0.5) pts.push(p);
+      }
+      if (pts.length < 2) pts.push(to.pos.clone().add(new THREE.Vector3(0, 0.01, 0)));
+      return new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+    };
+    let curve = build();
+    // the spline can sag between cruise points; lift them until the whole flight clears the ground
+    for (let iter = 0; iter < 3 && cruise.length; iter++) {
+      let deficit = 0;
+      for (let i = 1; i < 40; i++) {
+        const q = curve.getPointAt(i / 40, this.tmpA);
+        const nearFixed = [...head, ...tail].some((f) => Math.hypot(f.x - q.x, f.z - q.z) < 14);
+        if (nearFixed) continue;
+        deficit = Math.max(deficit, heightAt(q.x, q.z) + 8 - q.y);
+      }
+      if (deficit <= 0) break;
+      cruise.forEach((c) => (c.y += deficit + 3));
+      curve = build();
+    }
+    const length = curve.getLength();
 
     this.travel = {
       from,
@@ -345,8 +415,9 @@ export class World {
       start: performance.now() / 1000,
       duration:
         duration ??
-        THREE.MathUtils.clamp(2.1 + length / 260, 2.4, 3.4) + (to.waypoints.length ? 0.9 : 0) + (exit.length ? 0.6 : 0),
-      roll: isIntro ? 0 : THREE.MathUtils.clamp(turn, -1, 1) * (threaded ? 0.03 : 0.05),
+        THREE.MathUtils.clamp(2.3 + length / 240, 2.6, 4.4) + (to.waypoints.length ? 0.8 : 0) + (exit.length ? 0.5 : 0),
+      leaveSpan: exit.length ? 0.25 : 0.35,
+      arriveFrom: to.waypoints.length ? 0.7 : to.night ? 0.62 : 0.55,
       isIntro,
       fromIndex,
       index,
@@ -370,7 +441,7 @@ export class World {
     const doorTarget = tr0
       ? tr0.index === CABIN_SHOT || tr0.fromIndex === CABIN_SHOT ? 1 : 0
       : this.index === CABIN_SHOT ? 1 : 0;
-    this.doorOpen += (doorTarget - this.doorOpen) * damp(2.5, realDt);
+    this.doorOpen += (doorTarget - this.doorOpen) * damp(4, realDt);
     this.updateProps(t, easeInOutCubic(this.doorOpen));
     this.tv.update(t, dt);
     this.clouds.rotation.y += dt * 0.003;
@@ -382,28 +453,48 @@ export class World {
     const pos = this.tmpPos;
     const look = this.tmpLook;
     let fov = this.baseFov;
-    let roll = 0;
     let idle = 1;
+    let lookDist: number;
+    const dir = this.tmpDir;
 
     const tr = this.travel;
     if (tr) {
       const raw = clamp01((now - tr.start) / tr.duration);
       const e = tr.isIntro ? easeOutCubic(raw) : easeInOutSine(raw);
       tr.curve.getPointAt(e, pos);
-      const lookT = easeInOutSine(clamp01(raw * 1.1 - 0.05));
-      look.lerpVectors(tr.from.target, tr.to.target, lookT);
-      // mid-flight, drift the gaze toward where we're flying
-      tr.curve.getTangentAt(Math.min(e, 0.999), this.tmpTan);
-      if (this.tmpTan.lengthSq() > 1e-6) {
-        this.tmpTan.normalize();
-        this.tmpTan.y = Math.min(this.tmpTan.y, 0.05);
-        const fwd = this.tmpFwd.copy(pos).addScaledVector(this.tmpTan, 60);
-        const w = tr.isIntro ? 0 : Math.pow(Math.sin(Math.PI * raw), 2) * 0.35;
-        look.lerp(fwd, w);
+
+      const startDir = this.tmpA.subVectors(tr.from.target, tr.from.pos).normalize();
+      const endDir = this.tmpB.subVectors(tr.to.target, tr.to.pos).normalize();
+      const sYaw = yawOf(startDir);
+      const eYaw = yawOf(endDir);
+      const sPitch = Math.asin(THREE.MathUtils.clamp(startDir.y, -1, 1));
+      const ePitch = Math.asin(THREE.MathUtils.clamp(endDir.y, -1, 1));
+      let yaw = sYaw + angleDiff(eYaw, sYaw) * easeInOutSine(raw);
+      let pitch: number;
+      if (tr.isIntro) {
+        pitch = THREE.MathUtils.lerp(sPitch, ePitch, easeInOutSine(raw));
+      } else {
+        // settle into a gentle downward cruise tilt that shows the landscape, then into the
+        // destination's view as we arrive
+        const leave = smoothstep(0, tr.leaveSpan, raw);
+        const arrive = smoothstep(tr.arriveFrom, 1, raw);
+        pitch = THREE.MathUtils.lerp(THREE.MathUtils.lerp(sPitch, CRUISE_PITCH, leave), ePitch, arrive);
+        // lean a little toward the side we're travelling (a drone strafing, not turning around)
+        const ahead = tr.curve.getPointAt(Math.min(1, e + 0.06), this.tmpC).sub(pos);
+        const flat = Math.hypot(ahead.x, ahead.z);
+        if (flat > 0.5) {
+          const lateral = Math.sin(angleDiff(Math.atan2(ahead.x, -ahead.z), FRONT_YAW));
+          yaw += lateral * LEAN * Math.sin(Math.PI * raw);
+        }
+        yaw = FRONT_YAW + THREE.MathUtils.clamp(angleDiff(yaw, FRONT_YAW), -MAX_TURN, MAX_TURN);
       }
-      const pulse = Math.pow(Math.sin(Math.PI * raw), 2);
-      fov += pulse * (tr.isIntro ? 3 : 6);
-      roll = Math.sin(Math.PI * raw) * tr.roll;
+      const cp = Math.cos(pitch);
+      dir.set(Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp);
+      const dA = tr.from.target.distanceTo(tr.from.pos);
+      const dB = tr.to.target.distanceTo(tr.to.pos);
+      lookDist = THREE.MathUtils.lerp(dA, dB, e);
+
+      fov += Math.pow(Math.sin(Math.PI * raw), 2) * (tr.isIntro ? 2 : 4);
       this.tmpOff.lerpVectors(tr.from.offset, tr.to.offset, e);
       this.night = THREE.MathUtils.lerp(tr.from.night, tr.to.night, easeInOutSine(clamp01(raw * 1.3 - 0.15)));
       idle = raw;
@@ -422,32 +513,32 @@ export class World {
       }
     } else {
       pos.copy(this.current.pos);
-      look.copy(this.current.target);
+      dir.subVectors(this.current.target, this.current.pos);
+      lookDist = dir.length();
+      dir.normalize();
       this.tmpOff.copy(this.current.offset);
     }
 
     // gentle hover + pointer parallax
-    const dist = pos.distanceTo(look);
-    const sway = Math.min(dist * 0.01, 0.9) * idle;
+    const sway = Math.min(lookDist * 0.01, 0.9) * idle;
     pos.x += Math.sin(t * 0.21) * sway;
     pos.y += Math.sin(t * 0.33) * sway * 0.5;
     pos.z += Math.cos(t * 0.17) * sway * 0.6;
-    // damp the gaze so path corners (doorways, waypoint joins) never snap the view
-    if (!this.hasLook) {
-      this.smoothLook.copy(look);
-      this.hasLook = true;
+    // ease the heading itself (not a look-at point) so the view never snaps or lags sideways
+    if (!this.hasDir) {
+      this.smoothDir.copy(dir);
+      this.hasDir = true;
     }
-    this.smoothLook.lerp(look, damp(tr ? 4 : 6, realDt));
-    look.copy(this.smoothLook);
+    slerpDir(this.smoothDir, this.smoothDir.clone(), dir, damp(tr ? 3.5 : 6, realDt));
+    look.copy(pos).addScaledVector(this.smoothDir, lookDist);
     cam.position.copy(pos);
     cam.lookAt(look);
     this.lastLook.copy(look);
-    const par = dist * 0.035 * idle;
+    const par = lookDist * 0.035 * idle;
     const right = this.tmpRight.set(1, 0, 0).applyQuaternion(cam.quaternion);
     const up = this.tmpUp.set(0, 1, 0).applyQuaternion(cam.quaternion);
     look.addScaledVector(right, this.pointerSmooth.x * par).addScaledVector(up, -this.pointerSmooth.y * par * 0.5);
     cam.lookAt(look);
-    if (roll) cam.rotateZ(roll);
 
     const w = this.renderer.domElement.clientWidth;
     const h = this.renderer.domElement.clientHeight;
