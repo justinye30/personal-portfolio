@@ -6,8 +6,6 @@ type V3 = [number, number, number];
 // Camera stops, in section order. `offset` shifts the projection centre (fraction of the
 // viewport) so the subject sits beside the text instead of behind it. `waypoints` are flown
 // through (in order) before arriving — and in reverse when leaving — e.g. through a doorway.
-// `via` are scenic points flown through on any trip to or from the stop (e.g. a low pass
-// over the lake), before its waypoints.
 export interface Shot {
   id: string;
   pos: V3;
@@ -15,7 +13,6 @@ export interface Shot {
   offset: [number, number];
   mobileOffset: [number, number];
   waypoints?: V3[];
-  via?: V3[];
   portrait?: { pos: V3; target: V3 };
   night?: boolean;
 }

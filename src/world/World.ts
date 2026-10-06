@@ -21,7 +21,6 @@ interface Pose {
   target: THREE.Vector3;
   offset: THREE.Vector2;
   waypoints: THREE.Vector3[];
-  via: THREE.Vector3[];
   night: number;
 }
 
@@ -281,7 +280,6 @@ export class World {
         target,
         offset: new THREE.Vector2(off[0], off[1]),
         waypoints: (s.waypoints ?? []).map((w) => new THREE.Vector3(...w)),
-        via: (s.via ?? []).map((w) => new THREE.Vector3(...w)),
         night: s.night ? 1 : 0,
       };
     });
@@ -339,7 +337,6 @@ export class World {
       target: this.lastLook.clone(),
       offset: this.tmpOff.clone(),
       waypoints: [],
-      via: [],
       night: this.night,
     };
   }
@@ -360,15 +357,12 @@ export class World {
       return;
     }
 
-    // Flight plan, drone-style: back out through any doorway, pass the departure's scenic
-    // via-points, cruise above the treetops (only climbing when the ground demands it),
-    // then the destination's via-points and doorway.
+    // Flight plan, drone-style: back out through any doorway, cruise above the treetops
+    // (only climbing when the ground demands it), then thread the destination's doorway.
     const free = !interrupted;
     const exit = free ? [...from.waypoints].reverse() : [];
-    const fromVia = free ? [...from.via].reverse() : [];
-    const toVia = to.via;
-    const head = [from.pos, ...exit, ...fromVia].map((p) => p.clone());
-    const tail = [...toVia, ...to.waypoints, to.pos].map((p) => p.clone());
+    const head = [from.pos, ...exit].map((p) => p.clone());
+    const tail = [...to.waypoints, to.pos].map((p) => p.clone());
 
     const a = head[head.length - 1];
     const b = tail[0];
