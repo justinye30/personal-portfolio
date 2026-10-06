@@ -165,8 +165,47 @@ kbd {
   place-content: center;
   justify-items: center;
   gap: 10px;
-  background: linear-gradient(180deg, #7d84cf 0%, #c7a5d6 50%, #ffc4a6 100%);
+  /* the summit's dusk sky (contact section) without the mountains; when the world is ready
+     this fades away over the same sky, so the mountains appear to fade in */
+  background:
+    radial-gradient(ellipse 70% 45% at 0% 88%, rgba(150, 120, 190, 0.35), transparent 70%),
+    linear-gradient(180deg, #29275d 0%, #2d2a63 38%, #3a3572 54%, #594e8b 70%, #8a72a8 86%, #b28fb4 100%);
   transition: opacity 1.1s ease 0.15s, visibility 0s linear 1.3s;
+}
+
+.loader-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.loader-stars span {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff8ec;
+  box-shadow: 0 0 4px rgba(255, 248, 236, 0.6);
+  animation: loader-twinkle ease-in-out infinite alternate;
+}
+
+@keyframes loader-twinkle {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 0.95;
+  }
+}
+
+.loader > p,
+.loader-bar {
+  position: relative;
+  transition: opacity 0.35s ease;
+}
+
+/* the title clears quickly; the sky behind it keeps fading more slowly */
+.status-ready .loader > p,
+.status-ready .loader-bar {
+  opacity: 0;
 }
 
 .status-ready .loader,
@@ -898,6 +937,7 @@ kbd {
     display: none;
   }
   .loader-bar::after,
+  .loader-stars span,
   .hud-mouse span {
     animation: none;
   }

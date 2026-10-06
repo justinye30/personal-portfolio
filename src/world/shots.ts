@@ -68,3 +68,5 @@ export const SHOTS: Shot[] = [
 ];
 
 export const CABIN_SHOT = SHOTS.findIndex((s) => s.id === 'projects');
+// the loading screen is the summit's dusk sky; the world opens here and flies to the first stop
+export const CONTACT_SHOT = SHOTS.findIndex((s) => s.id === 'contact');

@@ -10,6 +10,25 @@ import type { World } from './world/World';
 type Status = 'loading' | 'ready' | 'fallback';
 
 const LAST = SECTIONS.length - 1;
+// keep the loading screen up a little after the world is ready, so it doesn't flash by
+const LOADER_HOLD_MS = 500;
+// brief pause after the reveal starts before the camera sets off toward the first stop
+const INTRO_DELAY_MS = 200;
+// A fixed scatter of twinkling stars for the loading screen's night sky.
+const LOADER_STARS = (() => {
+  let seed = 7;
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+  return Array.from({ length: 90 }, () => ({
+    left: rand() * 100,
+    top: rand() * 78,
+    size: rand() < 0.12 ? 2.6 : 1.2 + rand() * 1.1,
+    delay: rand() * 4,
+    duration: 2.5 + rand() * 3,
+  }));
+})();
 
 function indexFromHash() {
   const i = SECTIONS.findIndex((s) => `#${s.id}` === window.location.hash);
@@ -77,7 +96,7 @@ function App() {
         try {
           world = new World(containerRef.current, initialIndex, {
             reducedMotion: prefersReducedMotion(),
-            onReady: () => setStatus('ready'),
+            onReady: () => setTimeout(() => !disposed && setStatus('ready'), prefersReducedMotion() ? 0 : LOADER_HOLD_MS),
           });
         } catch (err) {
           console.error(err);
@@ -86,18 +105,27 @@ function App() {
         }
         worldRef.current = world;
         const started = world;
-        return started.start().then(() => {
-          if (disposed) return;
-          started.intro({
-            onNear: () => setShown(activeRef.current),
-            onArrive: () => {
-              busy.current = false;
-              const queued = pending.current;
-              pending.current = null;
-              if (queued !== null) navigateRef.current(queued);
-            },
+        return started
+          .start()
+          // start flying shortly after the reveal begins, so the fade and the move overlap
+          .then(
+            () =>
+              new Promise((resolve) =>
+                setTimeout(resolve, prefersReducedMotion() ? 0 : LOADER_HOLD_MS + INTRO_DELAY_MS),
+              ),
+          )
+          .then(() => {
+            if (disposed) return;
+            started.intro({
+              onNear: () => setShown(activeRef.current),
+              onArrive: () => {
+                busy.current = false;
+                const queued = pending.current;
+                pending.current = null;
+                if (queued !== null) navigateRef.current(queued);
+              },
+            });
           });
-        });
       })
       .catch((err) => {
         console.error(err);
@@ -258,10 +286,25 @@ function App() {
       </main>
 
       <div className="loader" aria-hidden={status !== 'loading'}>
+        <div className="loader-stars">
+          {LOADER_STARS.map((st, i) => (
+            <span
+              key={i}
+              style={{
+                left: `${st.left}%`,
+                top: `${st.top}%`,
+                width: st.size,
+                height: st.size,
+                animationDelay: `${st.delay}s`,
+                animationDuration: `${st.duration}s`,
+              }}
+            />
+          ))}
+        </div>
         <p className="loader-name">
-          <em>Justin</em> Ye
+          <em>Justin Ye</em>
         </p>
-        <p className="loader-text">generating world</p>
+        <p className="loader-text">loading world</p>
         <span className="loader-bar" />
       </div>
     </div>

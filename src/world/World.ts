@@ -3,7 +3,7 @@ import type { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { CAMP, FOREST_CLEARING, STONES, heightAt } from './layout';
 import { createParticles } from './particles';
 import { createProps } from './props';
-import { CABIN_SHOT, SHOTS, type Shot } from './shots';
+import { CABIN_SHOT, CONTACT_SHOT, SHOTS, type Shot } from './shots';
 import { SKY, createClouds, createDistantMountains, createSky } from './sky';
 import { createStars } from './stars';
 import { createTv } from './tv';
@@ -34,7 +34,6 @@ interface Travel {
   // portions of the flight spent turning away from the start view / into the end view
   leaveSpan: number;
   arriveFrom: number;
-  isIntro: boolean;
   fromIndex: number;
   index: number;
   near: boolean;
@@ -46,7 +45,6 @@ const REFLECTION_SCALE = 0.4;
 // Sine in/out keeps peak speed low (~1.6x average) so long flights don't feel whippy.
 const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const damp = (k: number, dt: number) => 1 - Math.exp(-k * dt);
 const smoothstep = (a: number, b: number, x: number) => {
@@ -113,6 +111,7 @@ export class World {
 
   private poses: Pose[] = [];
   private index: number;
+  private introTarget: number;
   private current: Pose;
   private travel: Travel | null = null;
   private baseFov = 50;
@@ -132,7 +131,9 @@ export class World {
 
   constructor(container: HTMLElement, startIndex: number, opts: { reducedMotion: boolean; onReady: () => void }) {
     this.container = container;
-    this.index = startIndex;
+    // open at the summit (matching the loading screen's sky), then fly to the requested stop
+    this.index = CONTACT_SHOT;
+    this.introTarget = startIndex;
     this.reducedMotion = opts.reducedMotion;
     this.onReady = opts.onReady;
 
@@ -221,18 +222,8 @@ export class World {
     );
 
     this.computePoses();
-    const startPose = this.poses[startIndex];
-    // intro: begin high above the valley and swoop down into the first stop
-    const introFrom = startPose.waypoints[0] ?? startPose.pos;
-    const intro: Pose = {
-      pos: introFrom.clone().add(new THREE.Vector3(30, 90, 110)),
-      target: startPose.target.clone().add(new THREE.Vector3(0, 40, 0)),
-      offset: startPose.offset.clone(),
-      waypoints: [],
-      via: [],
-      night: startPose.night,
-    };
-    this.current = intro;
+    this.current = this.poses[CONTACT_SHOT];
+    this.night = this.current.night;
     this.resize();
 
     window.addEventListener('resize', this.resize);
@@ -317,9 +308,15 @@ export class World {
     this.pointer.set((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1);
   };
 
-  /** Start the opening swoop. Returns immediately; callbacks fire as the camera lands. */
+  /** Fly from the summit to the first stop, exactly like a normal trip from Contact.
+   *  Returns immediately; callbacks fire as the camera lands. */
   intro(cb: TravelCallbacks) {
-    this.startTravel(this.index, cb, this.reducedMotion ? 0 : 3.2, true);
+    if (this.introTarget === this.index) {
+      cb.onNear?.();
+      cb.onArrive?.();
+      return;
+    }
+    this.startTravel(this.introTarget, cb, this.reducedMotion ? 0 : undefined);
   }
 
   goTo(index: number, cb: TravelCallbacks = {}) {
@@ -328,7 +325,7 @@ export class World {
       cb.onArrive?.();
       return;
     }
-    this.startTravel(index, cb, this.reducedMotion ? 0 : undefined, false);
+    this.startTravel(index, cb, this.reducedMotion ? 0 : undefined);
   }
 
   /** Tune the cabin TV to a project (or back to the idle screen with null). */
@@ -347,9 +344,9 @@ export class World {
     };
   }
 
-  private startTravel(index: number, cb: TravelCallbacks, duration: number | undefined, isIntro: boolean) {
-    const interrupted = !isIntro && this.travel !== null;
-    const from = isIntro ? this.current : interrupted ? this.snapshotPose() : this.current;
+  private startTravel(index: number, cb: TravelCallbacks, duration: number | undefined) {
+    const interrupted = this.travel !== null;
+    const from = interrupted ? this.snapshotPose() : this.current;
     const fromIndex = this.index;
     const to = this.poses[index];
     this.index = index;
@@ -366,10 +363,10 @@ export class World {
     // Flight plan, drone-style: back out through any doorway, pass the departure's scenic
     // via-points, cruise above the treetops (only climbing when the ground demands it),
     // then the destination's via-points and doorway.
-    const free = !isIntro && !interrupted;
+    const free = !interrupted;
     const exit = free ? [...from.waypoints].reverse() : [];
     const fromVia = free ? [...from.via].reverse() : [];
-    const toVia = isIntro ? [] : to.via;
+    const toVia = to.via;
     const head = [from.pos, ...exit, ...fromVia].map((p) => p.clone());
     const tail = [...toVia, ...to.waypoints, to.pos].map((p) => p.clone());
 
@@ -377,7 +374,7 @@ export class World {
     const b = tail[0];
     const cruise: THREE.Vector3[] = [];
     const span = Math.hypot(b.x - a.x, b.z - a.z);
-    if (!isIntro && span > 30) {
+    if (span > 30) {
       for (const f of [1 / 3, 2 / 3]) {
         const p = a.clone().lerp(b, f);
         p.y = Math.max(p.y, cruiseHeight(p.x, p.z));
@@ -418,7 +415,6 @@ export class World {
         THREE.MathUtils.clamp(2.3 + length / 240, 2.6, 4.4) + (to.waypoints.length ? 0.8 : 0) + (exit.length ? 0.5 : 0),
       leaveSpan: exit.length ? 0.25 : 0.35,
       arriveFrom: to.waypoints.length ? 0.7 : to.night ? 0.62 : 0.55,
-      isIntro,
       fromIndex,
       index,
       near: false,
@@ -460,7 +456,7 @@ export class World {
     const tr = this.travel;
     if (tr) {
       const raw = clamp01((now - tr.start) / tr.duration);
-      const e = tr.isIntro ? easeOutCubic(raw) : easeInOutSine(raw);
+      const e = easeInOutSine(raw);
       tr.curve.getPointAt(e, pos);
 
       const startDir = this.tmpA.subVectors(tr.from.target, tr.from.pos).normalize();
@@ -470,31 +466,26 @@ export class World {
       const sPitch = Math.asin(THREE.MathUtils.clamp(startDir.y, -1, 1));
       const ePitch = Math.asin(THREE.MathUtils.clamp(endDir.y, -1, 1));
       let yaw = sYaw + angleDiff(eYaw, sYaw) * easeInOutSine(raw);
-      let pitch: number;
-      if (tr.isIntro) {
-        pitch = THREE.MathUtils.lerp(sPitch, ePitch, easeInOutSine(raw));
-      } else {
-        // settle into a gentle downward cruise tilt that shows the landscape, then into the
-        // destination's view as we arrive
-        const leave = smoothstep(0, tr.leaveSpan, raw);
-        const arrive = smoothstep(tr.arriveFrom, 1, raw);
-        pitch = THREE.MathUtils.lerp(THREE.MathUtils.lerp(sPitch, CRUISE_PITCH, leave), ePitch, arrive);
-        // lean a little toward the side we're travelling (a drone strafing, not turning around)
-        const ahead = tr.curve.getPointAt(Math.min(1, e + 0.06), this.tmpC).sub(pos);
-        const flat = Math.hypot(ahead.x, ahead.z);
-        if (flat > 0.5) {
-          const lateral = Math.sin(angleDiff(Math.atan2(ahead.x, -ahead.z), FRONT_YAW));
-          yaw += lateral * LEAN * Math.sin(Math.PI * raw);
-        }
-        yaw = FRONT_YAW + THREE.MathUtils.clamp(angleDiff(yaw, FRONT_YAW), -MAX_TURN, MAX_TURN);
+      // settle into a gentle downward cruise tilt that shows the landscape, then into the
+      // destination's view as we arrive
+      const leave = smoothstep(0, tr.leaveSpan, raw);
+      const arrive = smoothstep(tr.arriveFrom, 1, raw);
+      const pitch = THREE.MathUtils.lerp(THREE.MathUtils.lerp(sPitch, CRUISE_PITCH, leave), ePitch, arrive);
+      // lean a little toward the side we're travelling (a drone strafing, not turning around)
+      const ahead = tr.curve.getPointAt(Math.min(1, e + 0.06), this.tmpC).sub(pos);
+      const flat = Math.hypot(ahead.x, ahead.z);
+      if (flat > 0.5) {
+        const lateral = Math.sin(angleDiff(Math.atan2(ahead.x, -ahead.z), FRONT_YAW));
+        yaw += lateral * LEAN * Math.sin(Math.PI * raw);
       }
+      yaw = FRONT_YAW + THREE.MathUtils.clamp(angleDiff(yaw, FRONT_YAW), -MAX_TURN, MAX_TURN);
       const cp = Math.cos(pitch);
       dir.set(Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp);
       const dA = tr.from.target.distanceTo(tr.from.pos);
       const dB = tr.to.target.distanceTo(tr.to.pos);
       lookDist = THREE.MathUtils.lerp(dA, dB, e);
 
-      fov += Math.pow(Math.sin(Math.PI * raw), 2) * (tr.isIntro ? 2 : 4);
+      fov += Math.pow(Math.sin(Math.PI * raw), 2) * 4;
       this.tmpOff.lerpVectors(tr.from.offset, tr.to.offset, e);
       this.night = THREE.MathUtils.lerp(tr.from.night, tr.to.night, easeInOutSine(clamp01(raw * 1.3 - 0.15)));
       idle = raw;
