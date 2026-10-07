@@ -205,12 +205,8 @@ function App() {
   const setView = useCallback((on: boolean) => {
     viewingRef.current = on;
     setViewing(on);
+    // (the cabin TV keeps playing whichever project was last picked)
     worldRef.current?.setLookAround(on);
-    // the cabin TV goes back to its idle screen while looking around
-    if (on) {
-      setPreview(null);
-      worldRef.current?.showProject(null);
-    }
   }, []);
   const toggleView = useCallback(() => setView(!viewingRef.current), [setView]);
 
