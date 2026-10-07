@@ -96,8 +96,10 @@ function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<World | null>(null);
   const activeRef = useRef(initialIndex);
-  const busy = useRef(true);
-  // one queued destination for clicks/keys pressed mid-flight (wheel input is never queued)
+  // input is held until the intro flight begins; after that, any input (even mid-flight)
+  // redirects the camera straight away
+  const locked = useRef(true);
+  // one destination clicked/keyed during the loading screen (wheel input is never queued)
   const pending = useRef<number | null>(null);
   const navigateRef = useRef<(next: number) => void>(() => {});
   const viewingRef = useRef(false);
@@ -108,7 +110,7 @@ function App() {
 
     const fallback = () => {
       if (disposed) return;
-      busy.current = false;
+      locked.current = false;
       setStatus('fallback');
       setShown(activeRef.current);
     };
@@ -141,14 +143,12 @@ function App() {
             if (disposed) return;
             started.intro({
               onNear: () => setShown(activeRef.current),
-              onArrive: () => {
-                busy.current = false;
-                setSettled(true);
-                const queued = pending.current;
-                pending.current = null;
-                if (queued !== null) navigateRef.current(queued);
-              },
+              onArrive: () => setSettled(true),
             });
+            locked.current = false;
+            const queued = pending.current;
+            pending.current = null;
+            if (queued !== null) navigateRef.current(queued);
           });
       })
       .catch((err) => {
@@ -165,10 +165,11 @@ function App() {
 
   const navigate = useCallback((next: number, queue = false) => {
     if (next < 0 || next > LAST || viewingRef.current) return;
-    if (busy.current) {
+    if (locked.current) {
       if (queue) pending.current = next;
       return;
     }
+    // already there, or already on the way
     if (next === activeRef.current) return;
     activeRef.current = next;
     setActive(next);
@@ -180,7 +181,8 @@ function App() {
       setShown(next);
       return;
     }
-    busy.current = true;
+    // (mid-flight, the world turns the camera toward the new stop and drops the old
+    // flight's callbacks)
     setShown(null);
     setPreview(null);
     setTravelling(true);
@@ -188,12 +190,8 @@ function App() {
     world.goTo(next, {
       onNear: () => setShown(next),
       onArrive: () => {
-        busy.current = false;
         setTravelling(false);
         setSettled(true);
-        const queued = pending.current;
-        pending.current = null;
-        if (queued !== null) navigateRef.current(queued);
       },
     });
   }, []);
@@ -236,7 +234,7 @@ function App() {
       }
       e.preventDefault();
       // swallow trackpad inertia: a new gesture needs a short pause first
-      if (busy.current || now < quietUntil) {
+      if (locked.current || now < quietUntil) {
         quietUntil = Math.max(quietUntil, now + 160);
         acc = 0;
         return;

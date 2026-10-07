@@ -35,6 +35,8 @@ interface Travel {
   arriveFrom: number;
   fromIndex: number;
   index: number;
+  // the flight passes through the cabin doorway (keep the door open)
+  door: boolean;
   near: boolean;
   cb: TravelCallbacks;
 }
@@ -384,10 +386,13 @@ export class World {
 
     // Flight plan, drone-style: back out through any doorway, cruise above the treetops
     // (only climbing when the ground demands it), then thread the destination's doorway.
-    const free = !interrupted;
-    const exit = free ? [...from.waypoints].reverse() : [];
+    // Redirected mid-flight, the camera backs out of whatever doorway it is in and skips
+    // the approach points it has already passed.
+    const exit = interrupted ? this.doorwayExit(from.pos, to) : [...from.waypoints].reverse();
+    const toGo = from.pos.distanceTo(to.pos);
+    const approach = interrupted ? to.waypoints.filter((w) => w.distanceTo(to.pos) < toGo - 0.5) : to.waypoints;
     const head = [from.pos, ...exit].map((p) => p.clone());
-    const tail = [...to.waypoints, to.pos].map((p) => p.clone());
+    const tail = [...approach, to.pos].map((p) => p.clone());
 
     const a = head[head.length - 1];
     const b = tail[0];
@@ -431,14 +436,28 @@ export class World {
       start: performance.now() / 1000,
       duration:
         duration ??
-        THREE.MathUtils.clamp(2.3 + length / 240, 2.6, 4.4) + (to.waypoints.length ? 0.8 : 0) + (exit.length ? 0.5 : 0),
+        THREE.MathUtils.clamp(2.3 + length / 240, 2.6, 4.4) + (approach.length ? 0.8 : 0) + (exit.length ? 0.5 : 0),
       leaveSpan: exit.length ? 0.25 : 0.35,
-      arriveFrom: to.waypoints.length ? 0.7 : to.night ? 0.62 : 0.55,
+      arriveFrom: approach.length ? 0.7 : to.night ? 0.62 : 0.55,
       fromIndex,
       index,
+      door: index === CABIN_SHOT || fromIndex === CABIN_SHOT || exit.length > 0,
       near: false,
       cb,
     };
+  }
+
+  /** Waypoints leading back out of any doorway the camera at `p` is inside or lined up on
+   *  (nearest first), unless that doorway belongs to the destination. */
+  private doorwayExit(p: THREE.Vector3, to: Pose) {
+    for (const pose of this.poses) {
+      if (pose === to || !pose.waypoints.length) continue;
+      const d = p.distanceTo(pose.pos);
+      // beyond the outermost approach point: already clear of this doorway
+      if (d >= pose.waypoints[0].distanceTo(pose.pos)) continue;
+      return pose.waypoints.filter((w) => w.distanceTo(pose.pos) > d + 0.5).reverse().map((w) => w.clone());
+    }
+    return [];
   }
 
   private frame = () => {
@@ -453,9 +472,7 @@ export class World {
 
     // door opens for any trip into or out of the cabin, and stays open while we're inside
     const tr0 = this.travel;
-    const doorTarget = tr0
-      ? tr0.index === CABIN_SHOT || tr0.fromIndex === CABIN_SHOT ? 1 : 0
-      : this.index === CABIN_SHOT ? 1 : 0;
+    const doorTarget = tr0 ? (tr0.door ? 1 : 0) : this.index === CABIN_SHOT ? 1 : 0;
     this.doorOpen += (doorTarget - this.doorOpen) * damp(4, realDt);
     this.updateProps(t, easeInOutCubic(this.doorOpen));
     this.tv.update(t, dt);
