@@ -1,7 +1,9 @@
 import dishlyImg from './assets/img-dishly.webp';
+import dogginAroundImg from './assets/img-doggin-around.webp';
 import pixlrImg from './assets/img-pixlr.webp';
 import smartReaderImg from './assets/img-smart-reader.webp';
 import dishlyVideo from './assets/vid-dishly.mp4';
+import dogginAroundVideo from './assets/vid-doggin-around.mp4';
 import pixlrVideo from './assets/vid-pixlr.mp4';
 import smartReaderVideo from './assets/vid-smart-reader.mp4';
 import developforgood from './assets/logo-develop-for-good.webp';
@@ -20,6 +22,15 @@ export interface Project {
 }
 
 export const projectData: Project[] = [
+  {
+    id: 5,
+    title: "Doggin' Around",
+    description: "Interactive 3D world with Gaussian-splat dogs",
+    tags: ["TypeScript", "Three.js", "PyTorch", "ElevenAPI", "Rapier", "Spark"],
+    githubUrl: "https://github.com/DzhanybekZakiriiaev/doggin-around",
+    imageUrl: dogginAroundImg,
+    videoUrl: dogginAroundVideo,
+  },
   {
     id: 1,
     title: "Dishly",
