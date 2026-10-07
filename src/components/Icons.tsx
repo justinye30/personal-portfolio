@@ -40,3 +40,11 @@ export function ExternalIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function ArrowIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props} fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}

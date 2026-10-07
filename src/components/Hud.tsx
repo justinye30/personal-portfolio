@@ -1,4 +1,5 @@
 import { SECTIONS, pad2 } from '../sectionConfig';
+import { ArrowIcon } from './Icons';
 import Navbar from './Navbar';
 
 interface HudProps {
@@ -34,8 +35,29 @@ function Hud({ active, onNavigate }: HudProps) {
 
         <div className={`hud-hint ${active === 0 ? 'visible' : ''}`} aria-hidden={active !== 0}>
           <span className="hud-mouse"><span /></span>
-          <span className="hint-desktop">Scroll or press <kbd>→</kbd> to explore</span>
+          <span className="hint-desktop">Scroll or use arrow keys to explore</span>
           <span className="hint-touch">Swipe to explore</span>
+        </div>
+
+        <div className="hud-arrows">
+          <button
+            type="button"
+            className="hud-arrow"
+            aria-label="Previous location"
+            disabled={active === 0}
+            onClick={() => onNavigate(active - 1)}
+          >
+            <ArrowIcon style={{ transform: 'scaleX(-1)' }} />
+          </button>
+          <button
+            type="button"
+            className="hud-arrow"
+            aria-label="Next location"
+            disabled={active === SECTIONS.length - 1}
+            onClick={() => onNavigate(active + 1)}
+          >
+            <ArrowIcon />
+          </button>
         </div>
       </div>
     </>

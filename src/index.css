@@ -427,6 +427,34 @@ kbd {
   display: none;
 }
 
+/* phones only: tap targets for moving between locations */
+.hud-arrows {
+  display: none;
+}
+
+.hud-arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--ink);
+  transition: opacity 0.3s ease, background 0.3s ease;
+}
+
+.hud-arrow:active {
+  background: var(--glass-hover);
+}
+
+.hud-arrow:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .hud-mouse {
   position: relative;
   width: 18px;
@@ -541,9 +569,7 @@ kbd {
   top: 50%;
   transform: translateY(-50%);
   width: min(480px, 40vw);
-  max-height: calc(100dvh - 190px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  /* never scrolls on desktop (wheel always travels); longer lists will page instead */
   text-align: right;
   scrollbar-width: none;
   color: #fff;
@@ -827,7 +853,7 @@ kbd {
     gap: 14px;
     padding: 6px 0;
     font-family: var(--serif);
-    font-size: 46px;
+    font-size: 32px;
     letter-spacing: 0;
     text-transform: none;
     line-height: 1.1;
@@ -857,6 +883,14 @@ kbd {
     display: none;
   }
 
+  .hud-arrows {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    gap: 10px;
+  }
+
   .hud-place {
     font-size: 18px;
   }
@@ -865,16 +899,19 @@ kbd {
     width: 22px;
   }
 
+  /* fits over the mountains and treeline, between the sky and the lake */
   .home-hero {
-    top: 30dvh;
+    top: 24dvh;
   }
 
   .hero-title {
-    font-size: clamp(34px, 10.5vw, 64px);
+    font-size: clamp(30px, 9.4vw, 52px);
   }
 
   .hero-sub {
-    font-size: 15px;
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.65;
   }
 
   .tv-projects {
@@ -883,33 +920,53 @@ kbd {
     right: 16px;
     bottom: 96px;
     width: auto;
-    max-height: 46dvh;
+    /* the space under the TV; three projects fit, more scroll */
+    max-height: calc(56dvh - 96px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     transform: none;
   }
 
   .tv-list {
-    gap: 24px;
+    gap: 18px;
   }
 
   .tv-item-title {
-    font-size: 24px;
+    font-size: 19px;
+  }
+
+  .tv-item-link {
+    width: 28px;
+    height: 28px;
   }
 
   .tv-item-text {
-    margin-top: 10px;
-    font-size: 14px;
+    margin-top: 4px;
+    font-size: 12.5px;
+    line-height: 1.4;
   }
 
   .tv-item-tags {
-    margin-top: 8px;
+    margin-top: 3px;
+    font-size: 10px;
+  }
+
+  .contact-link {
+    grid-template-columns: 18px auto auto;
+    gap: 12px;
+  }
+
+  .contact-icon svg {
+    width: 18px;
+    height: 18px;
   }
 
   .contact-label {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .contact-list {
-    gap: 22px;
+    gap: 16px;
   }
 
   .sky-contact {

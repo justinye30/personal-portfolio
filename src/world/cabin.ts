@@ -219,11 +219,12 @@ function furniture(b: Builder, rand: () => number) {
   b.put(new THREE.CylinderGeometry(0.3, 0.38, 0.12, 8), dark, 5.2, FLOOR_Y + 0.06, 1.9);
   b.put(new THREE.CylinderGeometry(0.05, 0.05, 2.7, 6), dark, 5.2, FLOOR_Y + 1.4, 1.9);
 
-  // stacked firewood by the hearth
+  // stacked firewood by the hearth, lying out from the wall side by side (logs running along
+  // the wall would overlap end-to-end and z-fight)
   for (let i = 0; i < 7; i++) {
     const row = i < 4 ? 0 : 1;
     const k = row === 0 ? i : i - 4;
-    b.put(new THREE.CylinderGeometry(0.17, 0.17, 1.1, 6), rand() > 0.5 ? '#7a5236' : '#8c6040', -W / 2 + 0.9, FLOOR_Y + 0.18 + row * 0.32, -3.1 - k * 0.36 - row * 0.18, Math.PI / 2, 0, 0);
+    b.put(new THREE.CylinderGeometry(0.17, 0.17, 1.1, 6), rand() > 0.5 ? '#7a5236' : '#8c6040', -W / 2 + 0.95, FLOOR_Y + 0.18 + row * 0.32, -3.1 - k * 0.36 - row * 0.18, 0, 0, Math.PI / 2);
   }
 }
 

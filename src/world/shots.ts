@@ -48,7 +48,8 @@ export const SHOTS: Shot[] = [
     offset: [0, 0],
     mobileOffset: [0, 0],
     portrait: {
-      pos: add(add(tablet.center, tablet.normal, 12.5), up, 0.6),
+      // close enough that the inscription stays legible on a narrow screen
+      pos: add(add(tablet.center, tablet.normal, 9.5), up, 0.6),
       target: add(tablet.center, up, -0.2),
     },
   },

@@ -56,6 +56,15 @@ function canScroll(target: EventTarget | null, dir: number, axis: 'x' | 'y' = 'y
   return false;
 }
 
+// Is the target inside a scroll area that is actually scrollable in this layout (e.g. the
+// projects list on phones)? Vertical swipes there only ever scroll, never travel.
+function inScrollArea(target: EventTarget | null) {
+  const el = target instanceof Element ? target.closest('[data-scroll]') : null;
+  if (!el) return false;
+  const { overflowY } = getComputedStyle(el);
+  return overflowY === 'auto' || overflowY === 'scroll';
+}
+
 function Stage({ id, shown, children }: { id: string; shown: boolean; children: ReactNode }) {
   return (
     <section id={id} className={`stage stage-${id} ${shown ? 'is-shown' : ''}`} aria-hidden={!shown} inert={!shown}>
@@ -186,7 +195,7 @@ function App() {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       const now = performance.now();
       const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-      if (canScroll(e.target, dy)) {
+      if (inScrollArea(e.target) || canScroll(e.target, dy)) {
         quietUntil = now + 260;
         acc = 0;
         return;
@@ -228,10 +237,12 @@ function App() {
     let canUp = false;
     let canRight = false;
     let canLeft = false;
+    let lockY = false;
     const onTouchStart = (e: TouchEvent) => {
       const t = e.touches[0];
       sx = t.clientX;
       sy = t.clientY;
+      lockY = inScrollArea(e.target);
       canDown = canScroll(e.target, 1);
       canUp = canScroll(e.target, -1);
       canRight = canScroll(e.target, 1, 'x');
@@ -244,7 +255,7 @@ function App() {
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.3) {
         if (dx < 0 && !canRight) navigate(activeRef.current + 1);
         else if (dx > 0 && !canLeft) navigate(activeRef.current - 1);
-      } else if (Math.abs(dy) > 70 && Math.abs(dy) > Math.abs(dx)) {
+      } else if (!lockY && Math.abs(dy) > 70 && Math.abs(dy) > Math.abs(dx)) {
         if (dy < 0 && !canDown) navigate(activeRef.current + 1);
         else if (dy > 0 && !canUp) navigate(activeRef.current - 1);
       }

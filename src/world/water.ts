@@ -100,6 +100,17 @@ export function createWater(textureWidth: number, textureHeight: number) {
     clipBias: 0.003,
     multisample: 0,
   });
+  // The mirrored camera's right axis points the other way, so an off-centre view (setViewOffset)
+  // would shift its frustum the wrong way and part of the water would sample outside the
+  // reflection, smearing its edge. Mirror the horizontal skew while the reflection renders.
+  const renderReflection = water.onBeforeRender;
+  water.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
+    const m = camera.projectionMatrix.elements;
+    const skew = m[8];
+    m[8] = -skew;
+    renderReflection.call(this, renderer, scene, camera, geometry, material, group);
+    m[8] = skew;
+  };
   water.rotation.x = -Math.PI / 2;
   water.position.set(LAKE.x, WATER_LEVEL, LAKE.z);
   const mat = water.material as THREE.ShaderMaterial;
