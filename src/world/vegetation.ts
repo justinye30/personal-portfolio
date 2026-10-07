@@ -7,6 +7,7 @@ import {
   FOREST_CLEARING,
   STONES,
   distanceToSegment,
+  groundMin,
   heightAt,
   lakeDistance,
   noiseA,
@@ -223,6 +224,33 @@ export function createVegetation(timeUniform: { value: number }) {
     }
   }
 
+  // --- sparse pine stands on the low slopes of the outer ranges (beyond the playable
+  // square), so the forest doesn't stop dead at the world's edge. Own random stream so the
+  // valley's scatter stays as it was.
+  const outerRand = mulberry32(4048);
+  for (let i = 0; i < 14000; i++) {
+    const a = outerRand() * Math.PI * 2;
+    const r = 255 + outerRand() * 210;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r - 40;
+    if (Math.abs(x) < 262 && Math.abs(z) < 262) continue;
+    const h = heightAt(x, z);
+    if (h < 1.1 || h > 24) continue;
+    const clusters = smoothstep(0.1, 0.5, fbm(noiseA, x * 0.018 + 30, z * 0.018 - 12, 3));
+    if (outerRand() > 0.12 + 0.6 * clusters) continue;
+    if (slopeAt(x, z) > 0.7) continue;
+    if (!grid.free(x, z, 3.6)) continue;
+    grid.add(x, z, 3.6);
+
+    const scale = 1.1 + outerRand() * 0.8;
+    q.setFromAxisAngle(up, outerRand() * Math.PI * 2);
+    s.set(scale, scale * (0.9 + outerRand() * 0.3), scale);
+    p.set(x, h - 0.5, z);
+    m.compose(p, q, s);
+    pines.push(m.clone());
+    pineColors.push(new THREE.Color().setHSL(0, 0, 0.88 + outerRand() * 0.22));
+  }
+
   // --- bushes & rocks
   for (let i = 0; i < 9000; i++) {
     const x = (rand() - 0.5) * 420;
@@ -242,7 +270,10 @@ export function createVegetation(timeUniform: { value: number }) {
     q.setFromAxisAngle(up, rand() * Math.PI * 2);
     const sc = isRock ? 0.5 + rand() * 1.6 : 0.7 + rand() * 0.7;
     s.set(sc, sc * (isRock ? 0.7 + rand() * 0.6 : 1), sc);
-    p.set(x, h - (isRock ? 0.25 * sc : 0.15), z);
+    // (decided after the random draws so the rest of the scatter stays put)
+    // bushes don't cling to steep or rocky mountainsides; rocks sit on their lowest edge
+    if (!isRock && (h > 30 || slopeAt(x, z) > 0.6)) continue;
+    p.set(x, isRock ? groundMin(x, z, sc) - 0.25 * sc : h - 0.15, z);
     m.compose(p, q, s);
     if (isRock) {
       rocks.push(m.clone());

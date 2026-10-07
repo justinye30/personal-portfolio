@@ -1,21 +1,14 @@
-import { useState } from 'react';
 import { projectData } from '../content';
 import { GithubIcon } from '../components/Icons';
 import { rv } from '../components/reveal';
 
 interface ProjectsProps {
-  // tunes the cabin TV to a project's video
+  // the project the cabin TV is tuned to (null: idle screen)
+  active: number | null;
   onPreview: (index: number) => void;
 }
 
-function Projects({ onPreview }: ProjectsProps) {
-  const [active, setActive] = useState<number | null>(null);
-
-  const preview = (index: number) => {
-    setActive(index);
-    onPreview(index);
-  };
-
+function Projects({ active, onPreview }: ProjectsProps) {
   return (
     <div className="tv-projects" data-scroll>
       <ul className={`tv-list ${active !== null ? 'has-active' : ''}`}>
@@ -24,9 +17,9 @@ function Projects({ onPreview }: ProjectsProps) {
             key={project.id}
             className={`tv-item rv ${active === index ? 'active' : ''}`}
             style={rv(index)}
-            onMouseEnter={() => preview(index)}
-            onFocus={() => preview(index)}
-            onClick={() => preview(index)}
+            onMouseEnter={() => onPreview(index)}
+            onFocus={() => onPreview(index)}
+            onClick={() => onPreview(index)}
           >
             <div className="tv-item-head">
               <h2 className="tv-item-title" tabIndex={0}>

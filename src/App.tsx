@@ -65,9 +65,15 @@ function inScrollArea(target: EventTarget | null) {
   return overflowY === 'auto' || overflowY === 'scroll';
 }
 
-function Stage({ id, shown, children }: { id: string; shown: boolean; children: ReactNode }) {
+function Stage({ id, shown, hidden, children }: { id: string; shown: boolean; hidden: boolean; children: ReactNode }) {
+  // `hidden`: faded out for look-around mode, but keeps its revealed state for when it returns
   return (
-    <section id={id} className={`stage stage-${id} ${shown ? 'is-shown' : ''}`} aria-hidden={!shown} inert={!shown}>
+    <section
+      id={id}
+      className={`stage stage-${id} ${shown ? 'is-shown' : ''}`}
+      aria-hidden={!shown || hidden}
+      inert={!shown || hidden}
+    >
       {children}
     </section>
   );
@@ -79,6 +85,13 @@ function App() {
   const [shown, setShown] = useState<number | null>(null);
   const [travelling, setTravelling] = useState(false);
   const [status, setStatus] = useState<Status>('loading');
+  // the camera has come to a full stop at the active section
+  const [settled, setSettled] = useState(false);
+  // look-around mode: text hidden, drag to turn the camera in place
+  const [viewing, setViewing] = useState(false);
+  const [grabbing, setGrabbing] = useState(false);
+  // project the cabin TV is showing
+  const [preview, setPreview] = useState<number | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<World | null>(null);
@@ -87,6 +100,7 @@ function App() {
   // one queued destination for clicks/keys pressed mid-flight (wheel input is never queued)
   const pending = useRef<number | null>(null);
   const navigateRef = useRef<(next: number) => void>(() => {});
+  const viewingRef = useRef(false);
 
   useEffect(() => {
     let disposed = false;
@@ -129,6 +143,7 @@ function App() {
               onNear: () => setShown(activeRef.current),
               onArrive: () => {
                 busy.current = false;
+                setSettled(true);
                 const queued = pending.current;
                 pending.current = null;
                 if (queued !== null) navigateRef.current(queued);
@@ -149,7 +164,7 @@ function App() {
   }, [initialIndex]);
 
   const navigate = useCallback((next: number, queue = false) => {
-    if (next < 0 || next > LAST) return;
+    if (next < 0 || next > LAST || viewingRef.current) return;
     if (busy.current) {
       if (queue) pending.current = next;
       return;
@@ -167,12 +182,15 @@ function App() {
     }
     busy.current = true;
     setShown(null);
+    setPreview(null);
     setTravelling(true);
+    setSettled(false);
     world.goTo(next, {
       onNear: () => setShown(next),
       onArrive: () => {
         busy.current = false;
         setTravelling(false);
+        setSettled(true);
         const queued = pending.current;
         pending.current = null;
         if (queued !== null) navigateRef.current(queued);
@@ -186,12 +204,28 @@ function App() {
 
   const navigateQueued = useCallback((next: number) => navigate(next, true), [navigate]);
 
+  const setView = useCallback((on: boolean) => {
+    viewingRef.current = on;
+    setViewing(on);
+    worldRef.current?.setLookAround(on);
+    // the cabin TV goes back to its idle screen while looking around
+    if (on) {
+      setPreview(null);
+      worldRef.current?.showProject(null);
+    }
+  }, []);
+  const toggleView = useCallback(() => setView(!viewingRef.current), [setView]);
+
   // wheel / keyboard / swipe → travel
   useEffect(() => {
     let quietUntil = 0;
     let acc = 0;
 
     const onWheel = (e: WheelEvent) => {
+      if (viewingRef.current) {
+        e.preventDefault();
+        return;
+      }
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       const now = performance.now();
       const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
@@ -216,6 +250,10 @@ function App() {
     };
 
     const onKey = (e: KeyboardEvent) => {
+      if (viewingRef.current) {
+        if (e.key === 'Escape') setView(false);
+        return;
+      }
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -275,22 +313,68 @@ function App() {
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('hashchange', onHash);
     };
-  }, [navigate]);
+  }, [navigate, setView]);
 
-  const previewProject = useCallback((index: number) => worldRef.current?.showProject(index), []);
-  const stages = [<Home />, <Projects onPreview={previewProject} />, <Experience />, <Contact />];
+  // look-around: drag (mouse) or swipe (touch) anywhere to turn the camera
+  useEffect(() => {
+    if (!viewing) return;
+    let drag: { id: number; x: number; y: number } | null = null;
+    const onDown = (e: PointerEvent) => {
+      if (drag || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      if (e.target instanceof Element && e.target.closest('button, a')) return;
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      setGrabbing(true);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      worldRef.current?.lookBy(e.clientX - drag.x, e.clientY - drag.y);
+      drag.x = e.clientX;
+      drag.y = e.clientY;
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag = null;
+      setGrabbing(false);
+    };
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      setGrabbing(false);
+    };
+  }, [viewing]);
+
+  const previewProject = useCallback((index: number) => {
+    if (viewingRef.current) return;
+    setPreview(index);
+    worldRef.current?.showProject(index);
+  }, []);
+  const stages = [<Home />, <Projects active={preview} onPreview={previewProject} />, <Experience />, <Contact />];
 
   return (
-    <div className={`app status-${status} ${travelling ? 'is-travelling' : ''}`}>
+    <div
+      className={`app status-${status} ${travelling ? 'is-travelling' : ''} ${viewing ? 'is-viewing' : ''} ${grabbing ? 'is-grabbing' : ''}`}
+    >
       <div className="world" ref={containerRef} aria-hidden="true" />
       <div className="world-shade" aria-hidden="true" />
       <div className="speed-fx" aria-hidden="true" />
 
-      <Hud active={active} onNavigate={navigateQueued} />
+      <Hud
+        active={active}
+        onNavigate={navigateQueued}
+        canView={status === 'ready' && settled}
+        viewing={viewing}
+        onToggleView={toggleView}
+      />
 
       <main className="stages">
         {SECTIONS.map((s, i) => (
-          <Stage key={s.id} id={s.id} shown={shown === i}>
+          <Stage key={s.id} id={s.id} shown={shown === i} hidden={viewing}>
             {stages[i]}
           </Stage>
         ))}

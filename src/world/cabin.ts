@@ -163,7 +163,7 @@ function furniture(b: Builder, rand: () => number) {
 
   // picture frames on the back wall
   const wallZ = -D / 2 + LOG_R + 0.06;
-  for (const [fx, fy, fw, fh, inner] of [[2.8, 3.6, 1.3, 1.0, '#8bb3c9'], [4.5, 3.4, 0.9, 1.2, '#e2a87a']] as const) {
+  for (const [fx, fy, fw, fh, inner] of [[2.8, 3.7, 1.3, 1.0, '#8bb3c9'], [4.5, 3.85, 0.9, 1.2, '#e2a87a']] as const) {
     b.box(fw, fh, 0.08, '#4a3122', fx, fy, wallZ);
     b.box(fw - 0.22, fh - 0.22, 0.04, inner, fx, fy, wallZ + 0.05);
     b.box(fw - 0.5, (fh - 0.22) * 0.35, 0.03, '#7aa36a', fx, fy - (fh - 0.22) * 0.25, wallZ + 0.08);
@@ -177,9 +177,10 @@ function furniture(b: Builder, rand: () => number) {
   );
   const fabric = '#b8603f';
   b.box(3.4, 0.6, 1.3, fabric, 0, FLOOR_Y + 0.55, 0, 0, sofaM);
-  b.box(3.4, 1.0, 0.35, '#a6553a', 0, FLOOR_Y + 1.2, -0.55, 0, sofaM);
-  b.box(0.35, 0.75, 1.3, '#a6553a', -1.7, FLOOR_Y + 0.95, 0, 0, sofaM);
-  b.box(0.35, 0.75, 1.3, '#a6553a', 1.7, FLOOR_Y + 0.95, 0, 0, sofaM);
+  b.box(3.38, 1.0, 0.35, '#a6553a', 0, FLOOR_Y + 1.2, -0.55, 0, sofaM);
+  // arms stand a little proud of the base (flush faces z-fight and flicker)
+  b.box(0.35, 0.75, 1.38, '#a6553a', -1.7, FLOOR_Y + 0.95, 0.02, 0, sofaM);
+  b.box(0.35, 0.75, 1.38, '#a6553a', 1.7, FLOOR_Y + 0.95, 0.02, 0, sofaM);
   b.box(1.5, 0.22, 1.0, '#c97350', -0.78, FLOOR_Y + 0.95, 0.08, 0, sofaM);
   b.box(1.5, 0.22, 1.0, '#c97350', 0.78, FLOOR_Y + 0.95, 0.08, 0, sofaM);
   b.box(0.7, 0.6, 0.22, '#e8c27c', -1.1, FLOOR_Y + 1.35, -0.25, 0, sofaM);
@@ -193,14 +194,17 @@ function furniture(b: Builder, rand: () => number) {
   );
   const green = '#6f8a5a';
   b.box(1.4, 0.55, 1.3, green, 0, FLOOR_Y + 0.55, 0, 0, chairM);
-  b.box(1.4, 1.2, 0.3, '#627d4f', 0, FLOOR_Y + 1.35, -0.55, 0, chairM);
-  b.box(0.28, 0.65, 1.3, '#627d4f', -0.7, FLOOR_Y + 1.0, 0, 0, chairM);
-  b.box(0.28, 0.65, 1.3, '#627d4f', 0.7, FLOOR_Y + 1.0, 0, 0, chairM);
+  b.box(1.38, 1.2, 0.3, '#627d4f', 0, FLOOR_Y + 1.35, -0.55, 0, chairM);
+  b.box(0.28, 0.65, 1.38, '#627d4f', -0.7, FLOOR_Y + 1.0, 0.02, 0, chairM);
+  b.box(0.28, 0.65, 1.38, '#627d4f', 0.7, FLOOR_Y + 1.0, 0.02, 0, chairM);
   b.box(1.0, 0.18, 1.0, '#7e9a68', 0, FLOOR_Y + 0.92, 0.08, 0, chairM);
 
-  // bookshelf on the right wall
+  // bookshelf on the right wall: an open case (back, sides, top) so the shelves show
   const sx = W / 2 - LOG_R - 0.45;
-  b.box(0.8, 4.0, 2.8, dark, sx, FLOOR_Y + 2.0, -3.0);
+  b.box(0.1, 4.0, 2.8, dark, sx + 0.35, FLOOR_Y + 2.0, -3.0);
+  b.box(0.8, 4.0, 0.1, dark, sx, FLOOR_Y + 2.0, -4.35);
+  b.box(0.8, 4.0, 0.1, dark, sx, FLOOR_Y + 2.0, -1.65);
+  b.box(0.8, 0.1, 2.8, dark, sx, FLOOR_Y + 3.95, -3.0);
   const bookColors = ['#b5523b', '#e2b25a', '#5c7fa6', '#6f8a5a', '#d9d0c1', '#8a5a8f', '#c97350'];
   for (let s = 0; s < 4; s++) {
     const y = FLOOR_Y + 0.3 + s * 0.95;
@@ -247,6 +251,8 @@ export function createCabin() {
   logWall(b, rand, W, 0, 'x', -D / 2, backOpenings);
   logWall(b, rand, D, LOG_STEP / 2, 'z', -W / 2, []);
   logWall(b, rand, D, LOG_STEP / 2, 'z', W / 2, rightOpenings);
+  // the side walls start half a log up (the corners interlock), so a sill fills the gap below
+  for (const x of [-W / 2, W / 2]) b.box(LOG_R * 1.8, LOG_STEP / 2 + 0.1, D + 0.6, '#94653f', x, FLOOR_Y + LOG_STEP / 4 - 0.05, 0);
   windowFrame(b, frontOpenings[1], 'x', D / 2);
   windowFrame(b, rightOpenings[0], 'z', W / 2);
   windowFrame(b, backOpenings[0], 'x', -D / 2);

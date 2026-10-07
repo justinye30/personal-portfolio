@@ -402,29 +402,64 @@ kbd {
   line-height: 1;
 }
 
-.hud-hint {
+.hud-center {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--ink-2);
-  text-shadow: var(--text-shadow);
+}
+
+/* look-around toggle: appears once the camera has stopped, becomes an X while viewing */
+.hud-view {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--ink);
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(6px) scale(0.92);
+  transition: opacity 0.25s ease, transform 0.25s ease, background 0.3s ease, visibility 0s linear 0.25s;
 }
 
-.hud-hint.visible {
+.hud-view.available {
   opacity: 1;
+  visibility: visible;
   transform: none;
-  transition-delay: 1.4s;
+  transition: opacity 0.45s ease, transform 0.45s var(--ease-out), background 0.3s ease, visibility 0s;
 }
 
-.hint-touch {
-  display: none;
+.hud-view:hover,
+.hud-view.viewing {
+  background: rgba(40, 28, 66, 0.5);
+}
+
+/* everything but the toggle fades away while looking around */
+.stages,
+.navbar,
+.hud-progress {
+  transition: opacity 0.35s ease, visibility 0s;
+}
+
+/* the shown stage sets its own visibility, so it is hidden directly (otherwise it would
+   stay hoverable and scrollable while invisible) */
+.is-viewing :is(.stages, .stage.is-shown, .navbar, .hud-progress, .hud-arrows) {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+
+.is-viewing {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.is-viewing.is-grabbing {
+  cursor: grabbing;
 }
 
 /* phones only: tap targets for moving between locations */
@@ -453,41 +488,6 @@ kbd {
 .hud-arrow:disabled {
   opacity: 0.35;
   pointer-events: none;
-}
-
-.hud-mouse {
-  position: relative;
-  width: 18px;
-  height: 27px;
-  border: 1.5px solid var(--ink-2);
-  border-radius: 10px;
-}
-
-.hud-mouse span {
-  position: absolute;
-  left: 50%;
-  top: 5px;
-  width: 2px;
-  height: 5px;
-  margin-left: -1px;
-  border-radius: 2px;
-  background: var(--ink);
-  animation: mouse-wheel 1.8s ease-in-out infinite;
-}
-
-@keyframes mouse-wheel {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  70% {
-    transform: translateY(8px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 0;
-  }
 }
 
 /* ───────────────────────── stages ───────────────────────── */
@@ -526,7 +526,17 @@ kbd {
   opacity: 1;
   transform: none;
   transition: opacity 0.8s var(--ease-out), transform 0.9s var(--ease-out);
-  transition-delay: calc(var(--i, 0) * 80ms + 120ms);
+  transition-delay: calc(var(--i, 0) * 80ms + 120ms + var(--rv-wait, 0ms));
+}
+
+/* stages whose final approach is slow (threading the cabin door, settling on the summit)
+   wait a little longer, so their text lands as the camera does */
+.stage-projects {
+  --rv-wait: 650ms;
+}
+
+.stage-contact {
+  --rv-wait: 300ms;
 }
 
 /* ── home ── */
@@ -879,16 +889,24 @@ kbd {
     grid-template-columns: 1fr;
   }
 
-  .hud-hint {
-    display: none;
-  }
-
   .hud-arrows {
     position: absolute;
     right: 0;
     bottom: 0;
     display: flex;
     gap: 10px;
+  }
+
+  .hud-center {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+  }
+
+  .hud-view {
+    width: 44px;
+    height: 44px;
   }
 
   .hud-place {
@@ -975,15 +993,6 @@ kbd {
   }
 }
 
-@media (hover: none) {
-  .hint-desktop {
-    display: none;
-  }
-  .hint-touch {
-    display: inline;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .rv,
   .is-shown .rv {
@@ -994,8 +1003,7 @@ kbd {
     display: none;
   }
   .loader-bar::after,
-  .loader-stars span,
-  .hud-mouse span {
+  .loader-stars span {
     animation: none;
   }
 }

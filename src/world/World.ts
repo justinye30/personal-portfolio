@@ -7,7 +7,7 @@ import { CABIN_SHOT, CONTACT_SHOT, SHOTS, type Shot } from './shots';
 import { SKY, createClouds, createDistantMountains, createSky } from './sky';
 import { createStars } from './stars';
 import { createTv } from './tv';
-import { createTerrain } from './terrain';
+import { createOuterTerrain, createTerrain } from './terrain';
 import { createVegetation } from './vegetation';
 import { createWater } from './water';
 
@@ -84,6 +84,8 @@ const FRONT_YAW = yawOf(new THREE.Vector3().subVectors(new THREE.Vector3(...SHOT
 const MAX_TURN = THREE.MathUtils.degToRad(30);
 const LEAN = THREE.MathUtils.degToRad(20);
 const CRUISE_PITCH = -0.14;
+// look-around mode can tilt this far up or down from level
+const MAX_LOOK_PITCH = THREE.MathUtils.degToRad(75);
 
 export class World {
   readonly renderer: THREE.WebGLRenderer;
@@ -120,6 +122,11 @@ export class World {
   private readyFired = false;
   private onReady: () => void;
   private perf = { frames: 0, time: 0, skip: 2 };
+  // look-around mode: heading offsets from the parked view, eased back to zero on exit
+  private looking = false;
+  private lookBlend = 0;
+  private lookYaw = 0;
+  private lookPitch = 0;
 
   private tmpPos = new THREE.Vector3();
   private tmpLook = new THREE.Vector3();
@@ -182,7 +189,7 @@ export class World {
     scene.add(createDistantMountains());
     this.clouds = createClouds();
     scene.add(this.clouds);
-    scene.add(createTerrain());
+    scene.add(createTerrain(), createOuterTerrain());
 
     const dpr = renderer.getPixelRatio();
     this.water = createWater(Math.round(w * dpr * REFLECTION_SCALE), Math.round(h * dpr * REFLECTION_SCALE));
@@ -326,6 +333,21 @@ export class World {
     this.startTravel(index, cb, this.reducedMotion ? 0 : undefined);
   }
 
+  /** Free the camera to turn in place (or ease it back to the framed view). */
+  setLookAround(on: boolean) {
+    this.looking = on && !this.travel;
+  }
+
+  /** Turn the view by a drag of (dx, dy) pixels, grabbing the scene like a 360° photo. */
+  lookBy(dx: number, dy: number) {
+    if (!this.looking) return;
+    const h = this.renderer.domElement.clientHeight || window.innerHeight;
+    const k = THREE.MathUtils.degToRad(this.camera.fov) / h;
+    const base = Math.asin(THREE.MathUtils.clamp(this.tmpA.subVectors(this.current.target, this.current.pos).normalize().y, -1, 1));
+    this.lookYaw = angleDiff(this.lookYaw - dx * k, 0);
+    this.lookPitch = THREE.MathUtils.clamp(this.lookPitch + dy * k, -MAX_LOOK_PITCH - base, MAX_LOOK_PITCH - base);
+  }
+
   /** Tune the cabin TV to a project (or back to the idle screen with null). */
   showProject(index: number | null) {
     this.tv.show(index);
@@ -347,6 +369,9 @@ export class World {
     const fromIndex = this.index;
     const to = this.poses[index];
     this.index = index;
+    this.looking = false;
+    this.lookYaw = 0;
+    this.lookPitch = 0;
     if (fromIndex === CABIN_SHOT && index !== CABIN_SHOT) this.tv.show(null);
 
     if (duration === 0) {
@@ -439,6 +464,14 @@ export class World {
 
     this.pointerSmooth.lerp(this.pointer, 1 - Math.exp(-dt * 2.5));
 
+    this.lookBlend += ((this.looking ? 1 : 0) - this.lookBlend) * damp(4, realDt);
+    if (!this.looking && (this.lookYaw || this.lookPitch)) {
+      const keep = 1 - damp(3, realDt);
+      this.lookYaw *= keep;
+      this.lookPitch *= keep;
+      if (Math.abs(this.lookYaw) + Math.abs(this.lookPitch) < 1e-4) this.lookYaw = this.lookPitch = 0;
+    }
+
     const cam = this.camera;
     const pos = this.tmpPos;
     const look = this.tmpLook;
@@ -501,7 +534,14 @@ export class World {
       dir.subVectors(this.current.target, this.current.pos);
       lookDist = dir.length();
       dir.normalize();
-      this.tmpOff.copy(this.current.offset);
+      if (this.lookYaw || this.lookPitch) {
+        const yaw = yawOf(dir) + this.lookYaw;
+        const pitch = THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(dir.y, -1, 1)) + this.lookPitch, -MAX_LOOK_PITCH, MAX_LOOK_PITCH);
+        const cp = Math.cos(pitch);
+        dir.set(Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp);
+      }
+      // centre the projection while looking around; the text it made room for is hidden
+      this.tmpOff.copy(this.current.offset).multiplyScalar(1 - this.lookBlend);
     }
 
     // gentle hover + pointer parallax
@@ -519,7 +559,7 @@ export class World {
     cam.position.copy(pos);
     cam.lookAt(look);
     this.lastLook.copy(look);
-    const par = lookDist * 0.035 * idle;
+    const par = lookDist * 0.035 * idle * (1 - this.lookBlend);
     const right = this.tmpRight.set(1, 0, 0).applyQuaternion(cam.quaternion);
     const up = this.tmpUp.set(0, 1, 0).applyQuaternion(cam.quaternion);
     look.addScaledVector(right, this.pointerSmooth.x * par).addScaledVector(up, -this.pointerSmooth.y * par * 0.5);
