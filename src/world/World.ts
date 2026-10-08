@@ -37,6 +37,8 @@ interface Travel {
   index: number;
   // the flight passes through the cabin doorway (keep the door open)
   door: boolean;
+  // eased progress → distance along the curve, slowed through sharp doorway turns (null: as is)
+  warp: Float32Array | null;
   near: boolean;
   cb: TravelCallbacks;
 }
@@ -74,6 +76,69 @@ function cruiseHeight(x: number, z: number) {
   let h = Math.max(heightAt(x, z), 0);
   for (const [dx, dz] of [[14, 0], [-14, 0], [0, 14], [0, -14]]) h = Math.max(h, heightAt(x + dx, z + dz));
   return h + 24;
+}
+
+// Sharp turns at a doorway (backing out, then heading off the other way) ease down to a
+// fraction of the normal speed, over roughly this many world units either side of the turn.
+// Turns up to TURN_BENT (e.g. out toward the stones) use the first setting; near-reversals
+// from TURN_REVERSE on (e.g. back over the cabin to the summit) slow more, for longer.
+const TURN_ANGLE = 1.0;
+const TURN_BENT = THREE.MathUtils.degToRad(100);
+const TURN_REVERSE = THREE.MathUtils.degToRad(135);
+const TURN_SPEED = { bent: 0.55, reverse: 0.35 };
+const TURN_SPAN = { bent: 7, reverse: 9 };
+const WARP_STEPS = 256;
+
+/** Lookup from eased progress (0–1) to arc-length position on `curve` that slows the flight
+ *  around each control point in `turns` where the path bends sharply. Returns the table and
+ *  how much longer the flight takes, or null when no turn is sharp enough. */
+function turnWarp(curve: THREE.CatmullRomCurve3, turns: THREE.Vector3[]) {
+  const pts = curve.points;
+  const n = pts.length;
+  const per = 20;
+  const lengths = curve.getLengths((n - 1) * per);
+  const total = lengths[lengths.length - 1];
+  const dips: { at: number; width: number; depth: number }[] = [];
+  for (const t of turns) {
+    const i = pts.findIndex((p) => p.distanceToSquared(t) < 1e-8);
+    if (i <= 0 || i >= n - 1) continue;
+    const inDir = new THREE.Vector3().subVectors(pts[i], pts[i - 1]).normalize();
+    const outDir = new THREE.Vector3().subVectors(pts[i + 1], pts[i]).normalize();
+    const angle = Math.acos(THREE.MathUtils.clamp(inDir.dot(outDir), -1, 1));
+    if (angle < TURN_ANGLE) continue;
+    const k = THREE.MathUtils.smoothstep(angle, TURN_BENT, TURN_REVERSE);
+    dips.push({
+      at: lengths[i * per] / total,
+      width: THREE.MathUtils.lerp(TURN_SPAN.bent, TURN_SPAN.reverse, k) / total,
+      depth: 1 - THREE.MathUtils.lerp(TURN_SPEED.bent, TURN_SPEED.reverse, k),
+    });
+  }
+  if (!dips.length || total < 1) return null;
+  const speed = (u: number) => {
+    let slow = 0;
+    for (const d of dips) slow = Math.max(slow, d.depth * Math.exp(-(((u - d.at) / d.width) ** 2)));
+    return 1 - slow;
+  };
+  // time to reach each arc position, then invert it
+  const time = new Float32Array(WARP_STEPS + 1);
+  for (let j = 1; j <= WARP_STEPS; j++) time[j] = time[j - 1] + 1 / WARP_STEPS / speed((j - 0.5) / WARP_STEPS);
+  const stretch = time[WARP_STEPS];
+  const table = new Float32Array(WARP_STEPS + 1);
+  let j = 0;
+  for (let i = 0; i <= WARP_STEPS; i++) {
+    const target = (i / WARP_STEPS) * stretch;
+    while (j < WARP_STEPS && time[j + 1] < target) j++;
+    const span = time[j + 1] - time[j] || 1;
+    table[i] = Math.min(1, (j + (target - time[j]) / span) / WARP_STEPS);
+  }
+  return { table, stretch };
+}
+
+function sampleWarp(table: Float32Array | null, e: number) {
+  if (!table) return e;
+  const x = clamp01(e) * WARP_STEPS;
+  const i = Math.min(WARP_STEPS - 1, Math.floor(x));
+  return THREE.MathUtils.lerp(table[i], table[i + 1], x - i);
 }
 
 // Heading convention: yaw 0 looks north (-z), positive yaw turns right (east).
@@ -428,6 +493,8 @@ export class World {
       curve = build();
     }
     const length = curve.getLength();
+    const turns = [...(exit.length ? [head[head.length - 1]] : []), ...(approach.length ? [tail[0]] : [])];
+    const warp = turnWarp(curve, turns);
 
     this.travel = {
       from,
@@ -436,12 +503,14 @@ export class World {
       start: performance.now() / 1000,
       duration:
         duration ??
-        THREE.MathUtils.clamp(2.3 + length / 240, 2.6, 4.4) + (approach.length ? 0.8 : 0) + (exit.length ? 0.5 : 0),
+        (THREE.MathUtils.clamp(2.3 + length / 240, 2.6, 4.4) + (approach.length ? 0.8 : 0) + (exit.length ? 0.5 : 0)) *
+          (warp?.stretch ?? 1),
       leaveSpan: exit.length ? 0.25 : 0.35,
       arriveFrom: approach.length ? 0.7 : to.night ? 0.62 : 0.55,
       fromIndex,
       index,
       door: index === CABIN_SHOT || fromIndex === CABIN_SHOT || exit.length > 0,
+      warp: warp?.table ?? null,
       near: false,
       cb,
     };
@@ -501,7 +570,8 @@ export class World {
     if (tr) {
       const raw = clamp01((now - tr.start) / tr.duration);
       const e = easeInOutSine(raw);
-      tr.curve.getPointAt(e, pos);
+      const u = sampleWarp(tr.warp, e);
+      tr.curve.getPointAt(u, pos);
 
       const startDir = this.tmpA.subVectors(tr.from.target, tr.from.pos).normalize();
       const endDir = this.tmpB.subVectors(tr.to.target, tr.to.pos).normalize();
@@ -516,7 +586,7 @@ export class World {
       const arrive = smoothstep(tr.arriveFrom, 1, raw);
       const pitch = THREE.MathUtils.lerp(THREE.MathUtils.lerp(sPitch, CRUISE_PITCH, leave), ePitch, arrive);
       // lean a little toward the side we're travelling (a drone strafing, not turning around)
-      const ahead = tr.curve.getPointAt(Math.min(1, e + 0.06), this.tmpC).sub(pos);
+      const ahead = tr.curve.getPointAt(Math.min(1, u + 0.06), this.tmpC).sub(pos);
       const flat = Math.hypot(ahead.x, ahead.z);
       if (flat > 0.5) {
         const lateral = Math.sin(angleDiff(Math.atan2(ahead.x, -ahead.z), FRONT_YAW));
