@@ -38,7 +38,7 @@ export const SHOTS: Shot[] = [
     target: cabinToWorld(tv.pos[0], tv.pos[1], tv.pos[2]),
     offset: [0.2, 0],
     mobileOffset: [0, 0.22],
-    waypoints: [cabinToWorld(2.2, 3.6, 17), cabinToWorld(2.2, 2.95, 5.0)],
+    waypoints: [cabinToWorld(2.2, 3.6, 17), cabinToWorld(2.3, 2.95, 5.0)],
   },
   {
     id: 'experience',
