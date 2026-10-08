@@ -200,7 +200,7 @@ export class World {
     const reflectionCam = (this.water as unknown as { getReflectionCamera(c: THREE.Camera): THREE.Camera }).getReflectionCamera(this.camera);
     reflectionCam.layers.disable(1);
 
-    this.stars = createStars(() => this.renderer.getPixelRatio());
+    this.stars = createStars(() => this.renderer.getPixelRatio(), { reducedMotion: this.reducedMotion });
     scene.add(this.stars.group);
 
     scene.add(createVegetation(this.timeUniform));
@@ -591,7 +591,7 @@ export class World {
     this.sky.position.copy(cam.position);
     this.stars.group.position.copy(cam.position);
     (this.sky.material as THREE.ShaderMaterial).uniforms.uNight.value = this.night;
-    this.stars.update(t, this.night);
+    this.stars.update(t, dt, this.night, cam, h);
     this.renderer.render(this.scene, cam);
     if (this.readyFired) this.adaptQuality(dt);
 
