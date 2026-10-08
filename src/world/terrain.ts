@@ -154,5 +154,7 @@ export function createOuterTerrain() {
   colorFaces(geo, 19);
   const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }));
   mesh.name = 'outer-terrain';
+  // main camera only: the lake's reflection barely shows it, so it skips that pass
+  mesh.layers.set(1);
   return mesh;
 }

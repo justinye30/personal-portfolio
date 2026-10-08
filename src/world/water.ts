@@ -105,6 +105,8 @@ export function createWater(textureWidth: number, textureHeight: number) {
   // reflection, smearing its edge. Mirror the horizontal skew while the reflection renders.
   const renderReflection = water.onBeforeRender;
   water.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
+    // the World pauses the reflection where the lake can't be seen (it keeps the last one)
+    if (water.userData.reflect === false) return;
     const m = camera.projectionMatrix.elements;
     const skew = m[8];
     m[8] = -skew;

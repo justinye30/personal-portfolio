@@ -159,6 +159,31 @@ function makeInstanced(geo: THREE.BufferGeometry, mat: THREE.Material, mats: THR
   return mesh;
 }
 
+// One instanced mesh is drawn whole whenever any of it is on screen, so instances are split
+// into square patches the renderer can skip when they're out of view.
+const PATCH = 120;
+// beyond the playable square (the outer ranges' pines): drawn by the main camera only, kept
+// out of the lake's reflection, which barely shows them
+const OUTER_EDGE = 262;
+
+function makePatches(geo: THREE.BufferGeometry, mat: THREE.Material, mats: THREE.Matrix4[], colors?: THREE.Color[]) {
+  const patches = new Map<string, number[]>();
+  mats.forEach((m, i) => {
+    const x = m.elements[12];
+    const z = m.elements[14];
+    const outer = Math.abs(x) >= OUTER_EDGE || Math.abs(z) >= OUTER_EDGE;
+    const key = `${Math.floor(x / PATCH)},${Math.floor(z / PATCH)},${outer ? 'o' : 'i'}`;
+    let list = patches.get(key);
+    if (!list) patches.set(key, (list = []));
+    list.push(i);
+  });
+  return [...patches].map(([key, list]) => {
+    const mesh = makeInstanced(geo, mat, list.map((i) => mats[i]), colors && list.map((i) => colors[i]));
+    if (key.endsWith('o')) mesh.layers.set(1);
+    return mesh;
+  });
+}
+
 export function createVegetation(timeUniform: { value: number }) {
   const group = new THREE.Group();
   group.name = 'vegetation';
@@ -285,11 +310,13 @@ export function createVegetation(timeUniform: { value: number }) {
 
   const solidMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
 
-  const pineMesh = makeInstanced(pineGeometry(), solidMat, pines, pineColors);
-  const roundMesh = makeInstanced(roundTreeGeometry(), solidMat, rounds, roundColors);
-  const bushMesh = makeInstanced(bushGeometry(), solidMat, bushes);
-  const rockMesh = makeInstanced(rockGeometry(3), solidMat, rocks, rockColors);
-  for (const mesh of [pineMesh, roundMesh, bushMesh, rockMesh]) {
+  const solids = [
+    ...makePatches(pineGeometry(), solidMat, pines, pineColors),
+    ...makePatches(roundTreeGeometry(), solidMat, rounds, roundColors),
+    ...makePatches(bushGeometry(), solidMat, bushes),
+    ...makePatches(rockGeometry(3), solidMat, rocks, rockColors),
+  ];
+  for (const mesh of solids) {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     group.add(mesh);
@@ -384,18 +411,21 @@ export function createVegetation(timeUniform: { value: number }) {
     }
   }
 
-  const grassMesh = makeInstanced(tuftGeo, grassMat, grass);
-  grassMesh.receiveShadow = true;
-  grassMesh.layers.set(1);
-  group.add(grassMesh);
+  for (const mesh of makePatches(tuftGeo, grassMat, grass)) {
+    mesh.receiveShadow = true;
+    mesh.layers.set(1);
+    group.add(mesh);
+  }
 
   const flowerGeo = build([
     { geo: new THREE.CylinderGeometry(0.025, 0.025, 0.5, 3).translate(0, 0.25, 0), color: '#5f7b33' },
     { geo: new THREE.OctahedronGeometry(0.16, 0).translate(0, 0.55, 0), color: '#ffffff' },
   ]);
-  const flowerMesh = makeInstanced(flowerGeo, new THREE.MeshLambertMaterial({ vertexColors: true }), flowers, flowerColors);
-  flowerMesh.layers.set(1);
-  group.add(flowerMesh);
+  const flowerMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+  for (const mesh of makePatches(flowerGeo, flowerMat, flowers, flowerColors)) {
+    mesh.layers.set(1);
+    group.add(mesh);
+  }
 
   return group;
 }

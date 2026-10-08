@@ -547,6 +547,9 @@ export class World {
     this.tv.update(t, dt);
     this.clouds.rotation.y += dt * 0.003;
     (this.water.material as THREE.ShaderMaterial).uniforms.uTime.value = t;
+    // parked inside the cabin the lake is out of sight behind the walls; skip re-rendering
+    // the whole scene into its reflection
+    this.water.userData.reflect = this.travel !== null || this.index !== CABIN_SHOT;
 
     this.pointerSmooth.lerp(this.pointer, 1 - Math.exp(-dt * 2.5));
 
