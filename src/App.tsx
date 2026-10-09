@@ -14,6 +14,8 @@ const LAST = SECTIONS.length - 1;
 const LOADER_HOLD_MS = 500;
 // brief pause after the reveal starts before the camera sets off toward the first stop
 const INTRO_DELAY_MS = 200;
+// how much faster look-around turns for a touch swipe than for a mouse drag
+const TOUCH_LOOK_SPEED = 2.2;
 // A fixed scatter of twinkling stars for the loading screen's night sky.
 const LOADER_STARS = (() => {
   let seed = 7;
@@ -321,7 +323,9 @@ function App() {
     };
     const onMove = (e: PointerEvent) => {
       if (!drag || e.pointerId !== drag.id) return;
-      worldRef.current?.lookBy(e.clientX - drag.x, e.clientY - drag.y);
+      // phone screens are small, so a swipe turns further than a mouse drag
+      const k = e.pointerType === 'mouse' ? 1 : TOUCH_LOOK_SPEED;
+      worldRef.current?.lookBy((e.clientX - drag.x) * k, (e.clientY - drag.y) * k);
       drag.x = e.clientX;
       drag.y = e.clientY;
     };
