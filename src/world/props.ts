@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { createCabin } from './cabin';
 import { createInscription } from './inscription';
 import { CABIN, CABIN_Y, CAMP, LAKE, STONES, TABLET_SLOT, groundMin, heightAt } from './layout';
@@ -18,6 +19,35 @@ function add(group: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Materi
   group.add(mesh);
   return mesh;
 }
+
+// Collects static pieces (each painted its material's colour) and merges them into one
+// vertex-coloured mesh, so a prop built from dozens of parts costs a single draw call.
+class Merger {
+  private parts: THREE.BufferGeometry[] = [];
+  private m = new THREE.Matrix4();
+  private q = new THREE.Quaternion();
+  private one = new THREE.Vector3(1, 1, 1);
+
+  add(geo: THREE.BufferGeometry, color: THREE.Color, x: number, y: number, z: number, rotation = new THREE.Euler()) {
+    const g = geo.index ? geo.toNonIndexed() : geo.clone();
+    g.deleteAttribute('uv');
+    g.deleteAttribute('normal');
+    g.applyMatrix4(this.m.compose(new THREE.Vector3(x, y, z), this.q.setFromEuler(rotation), this.one));
+    const arr = new Float32Array(g.attributes.position.count * 3);
+    for (let i = 0; i < arr.length; i += 3) arr.set([color.r, color.g, color.b], i);
+    g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+    this.parts.push(g);
+  }
+
+  build(mat: THREE.Material) {
+    const merged = mergeGeometries(this.parts)!;
+    this.parts.forEach((p) => p.dispose());
+    merged.computeVertexNormals();
+    return new THREE.Mesh(merged, mat);
+  }
+}
+
+const solid = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
 
 function jitteredStone(w: number, h: number, d: number, seed: number) {
   const rand = mulberry32(seed);
@@ -53,32 +83,37 @@ function createDock() {
   const end = shoreZ - 13;
   const deckY = 0.85;
   const rand = mulberry32(42);
+  // planks, posts, the lantern's pole and cap: one mesh
+  const deck = new Merger();
   const plank = new THREE.BoxGeometry(2.8, 0.14, 0.5);
   for (let z = start; z > end; z -= 0.58) {
-    const m = add(group, plank, rand() > 0.15 ? wood : darkWood, x, deckY + (rand() - 0.5) * 0.05, z);
-    m.rotation.y = (rand() - 0.5) * 0.04;
+    const color = rand() > 0.15 ? wood.color : darkWood.color;
+    const y = deckY + (rand() - 0.5) * 0.05;
+    deck.add(plank, color, x, y, z, new THREE.Euler(0, (rand() - 0.5) * 0.04, 0));
   }
   const post = new THREE.CylinderGeometry(0.13, 0.15, 3.2, 6);
   for (let z = start - 0.5; z > end; z -= 3.4) {
-    add(group, post, darkWood, x - 1.35, deckY - 1.1, z);
-    add(group, post, darkWood, x + 1.35, deckY - 1.1, z);
+    deck.add(post, darkWood.color, x - 1.35, deckY - 1.1, z);
+    deck.add(post, darkWood.color, x + 1.35, deckY - 1.1, z);
   }
   // lantern at the end of the dock
-  add(group, new THREE.CylinderGeometry(0.09, 0.11, 2.2, 6), darkWood, x + 1.2, deckY + 1.1, end + 0.6);
+  deck.add(new THREE.CylinderGeometry(0.09, 0.11, 2.2, 6), darkWood.color, x + 1.2, deckY + 1.1, end + 0.6);
+  deck.add(new THREE.ConeGeometry(0.38, 0.3, 4), darkWood.color, x + 1.2, deckY + 2.85, end + 0.6, new THREE.Euler(0, Math.PI / 4, 0));
+  const deckMesh = deck.build(solid);
+  deckMesh.castShadow = true;
+  deckMesh.receiveShadow = true;
+  group.add(deckMesh);
   const lantern = add(group, new THREE.BoxGeometry(0.42, 0.55, 0.42), glow, x + 1.2, deckY + 2.45, end + 0.6);
   lantern.castShadow = false;
-  add(group, new THREE.ConeGeometry(0.38, 0.3, 4), darkWood, x + 1.2, deckY + 2.85, end + 0.6).rotation.y = Math.PI / 4;
 
-  // little rowboat tied to the dock
-  const boat = new THREE.Group();
+  // little rowboat tied to the dock (one mesh, so it can bob)
+  const hull = new Merger();
   const hullGeo = new THREE.SphereGeometry(1, 8, 4, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
   hullGeo.scale(1.15, 0.55, 2.7);
-  const hull = new THREE.Mesh(hullGeo, new THREE.MeshLambertMaterial({ color: '#c0664a', flatShading: true, side: THREE.DoubleSide }));
-  hull.castShadow = true;
-  boat.add(hull);
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 0.5), wood);
-  seat.position.y = -0.12;
-  boat.add(seat);
+  hull.add(hullGeo, new THREE.Color('#c0664a'), 0, 0, 0);
+  hull.add(new THREE.BoxGeometry(2.1, 0.1, 0.5), wood.color, 0, -0.12, 0);
+  const boat = hull.build(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }));
+  boat.castShadow = true;
   boat.position.set(x + 3.4, 0.38, end + 3.5);
   boat.rotation.y = 0.18;
   group.add(boat);
@@ -90,16 +125,16 @@ function createCampfire() {
   const group = new THREE.Group();
   group.name = 'campfire';
   const rand = mulberry32(7);
+  // ring stones, firewood and seating logs: one mesh
+  const pit = new Merger();
   const rock = new THREE.DodecahedronGeometry(0.42, 0);
   for (let i = 0; i < 9; i++) {
     const a = (i / 9) * Math.PI * 2;
-    const m = add(group, rock, stone, Math.cos(a) * 1.4, 0.15, Math.sin(a) * 1.4);
-    m.rotation.set(rand() * 3, rand() * 3, rand() * 3);
+    pit.add(rock, stone.color, Math.cos(a) * 1.4, 0.15, Math.sin(a) * 1.4, new THREE.Euler(rand() * 3, rand() * 3, rand() * 3));
   }
   const log = new THREE.CylinderGeometry(0.16, 0.18, 2.2, 6);
   for (let i = 0; i < 4; i++) {
-    const m = add(group, log, darkWood, 0, 0.45, 0);
-    m.rotation.set(0.9, (i / 4) * Math.PI * 2, 0, 'YXZ');
+    pit.add(log, darkWood.color, 0, 0.45, 0, new THREE.Euler(0.9, (i / 4) * Math.PI * 2, 0, 'YXZ'));
   }
   const flames = new THREE.Group();
   const flameColors = ['#ff8a3d', '#ffb347', '#ffe08a'];
@@ -113,8 +148,12 @@ function createCampfire() {
 
   // seating logs
   const bench = new THREE.CylinderGeometry(0.42, 0.42, 3.2, 7).rotateZ(Math.PI / 2);
-  add(group, bench, wood, 0, 0.4, 4.2).rotation.y = 0.15;
-  add(group, bench, wood, -4.1, 0.4, 0.6).rotation.y = Math.PI / 2 + 0.2;
+  pit.add(bench, wood.color, 0, 0.4, 4.2, new THREE.Euler(0, 0.15, 0));
+  pit.add(bench, wood.color, -4.1, 0.4, 0.6, new THREE.Euler(0, Math.PI / 2 + 0.2, 0));
+  const pitMesh = pit.build(solid);
+  pitMesh.castShadow = true;
+  pitMesh.receiveShadow = true;
+  group.add(pitMesh);
 
   const light = new THREE.PointLight('#ff9a4f', 40, 34, 1.4);
   light.position.set(0, 2.2, 0);
