@@ -2,10 +2,12 @@ import dishlyImg from './assets/img-dishly.webp';
 import dogginAroundImg from './assets/img-doggin-around.webp';
 import pixlrImg from './assets/img-pixlr.webp';
 import smartReaderImg from './assets/img-smart-reader.webp';
+import ubcAdvisorImg from './assets/img-ubc-advisor.webp';
 import dishlyVideo from './assets/vid-dishly.mp4';
 import dogginAroundVideo from './assets/vid-doggin-around.mp4';
 import pixlrVideo from './assets/vid-pixlr.mp4';
 import smartReaderVideo from './assets/vid-smart-reader.mp4';
+import ubcAdvisorVideo from './assets/vid-ubc-advisor.mp4';
 import developforgood from './assets/logo-develop-for-good.webp';
 import sharkbyte from './assets/logo-sharkbyte.webp';
 
@@ -32,13 +34,13 @@ export const projectData: Project[] = [
     videoUrl: dogginAroundVideo,
   },
   {
-    id: 1,
-    title: "Dishly",
-    description: "AI-powered web app for recipe discovery",
-    tags: ["React", "Gemini API", "Express.js", "Axios", "Playwright", "Vitest"],
-    githubUrl: "https://github.com/cuhacking-dishly/CU-Hack",
-    imageUrl: dishlyImg,
-    videoUrl: dishlyVideo,
+    id: 6,
+    title: "UBC Course Advisor",
+    description: "RAG and rule-based advisor for UBC coursess",
+    tags: ["Python", "Flask", "PostgreSQL", "pgvector", "LangGraph", "AWS", "Docker"],
+    githubUrl: "https://github.com/justinye30/ubc-advisor",
+    imageUrl: ubcAdvisorImg,
+    videoUrl: ubcAdvisorVideo,
   },
   {
     id: 2,
@@ -48,6 +50,15 @@ export const projectData: Project[] = [
     githubUrl: "https://github.com/justinye30/Pixlr-2D-platformer-game",
     imageUrl: pixlrImg,
     videoUrl: pixlrVideo,
+  },
+  {
+    id: 1,
+    title: "Dishly",
+    description: "AI-powered web app for recipe discovery",
+    tags: ["React", "Gemini API", "Express.js", "Axios", "Playwright", "Vitest"],
+    githubUrl: "https://github.com/cuhacking-dishly/CU-Hack",
+    imageUrl: dishlyImg,
+    videoUrl: dishlyVideo,
   },
   {
     id: 4,
