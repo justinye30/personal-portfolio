@@ -36,7 +36,7 @@ export const projectData: Project[] = [
   {
     id: 6,
     title: "UBC Course Advisor",
-    description: "RAG and rule-based advisor for UBC coursess",
+    description: "RAG and rule-based advisor for UBC courses",
     tags: ["Python", "Flask", "PostgreSQL", "pgvector", "LangGraph", "AWS", "Docker"],
     githubUrl: "https://github.com/justinye30/ubc-advisor",
     imageUrl: ubcAdvisorImg,
