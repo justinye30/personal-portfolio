@@ -2,11 +2,13 @@ import dishlyImg from './assets/img-dishly.webp';
 import dogginAroundImg from './assets/img-doggin-around.webp';
 import pixlrImg from './assets/img-pixlr.webp';
 import smartReaderImg from './assets/img-smart-reader.webp';
+import treatopsImg from './assets/img-treatops.webp';
 import ubcAdvisorImg from './assets/img-ubc-advisor.webp';
 import dishlyVideo from './assets/vid-dishly.mp4';
 import dogginAroundVideo from './assets/vid-doggin-around.mp4';
 import pixlrVideo from './assets/vid-pixlr.mp4';
 import smartReaderVideo from './assets/vid-smart-reader.mp4';
+import treatopsVideo from './assets/vid-treatops.mp4';
 import ubcAdvisorVideo from './assets/vid-ubc-advisor.mp4';
 import developforgood from './assets/logo-develop-for-good.webp';
 import sharkbyte from './assets/logo-sharkbyte.webp';
@@ -41,6 +43,15 @@ export const projectData: Project[] = [
     githubUrl: "https://github.com/justinye30/ubc-advisor",
     imageUrl: ubcAdvisorImg,
     videoUrl: ubcAdvisorVideo,
+  },
+  {
+    id: 7,
+    title: "TreatOps",
+    description: "Real-time CV system with talking ESP32 plushie",
+    tags: ["Python", "OpenCV", "MediaPipe", "OpenAI API", "ElevenAPI", "ESP32"],
+    githubUrl: "https://github.com/justinye30/treatops",
+    imageUrl: treatopsImg,
+    videoUrl: treatopsVideo,
   },
   {
     id: 2,
