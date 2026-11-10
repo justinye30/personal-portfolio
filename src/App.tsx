@@ -369,8 +369,9 @@ function App() {
   const atCabin = active === PROJECTS && settled && status === 'ready' && !viewing;
   useEffect(() => {
     if (!atCabin) return;
-    // the project list and controls keep their own clicks
-    const own = (t: EventTarget | null) => t instanceof Element && t.closest('button, a, .tv-projects') !== null;
+    // the project list, controls and the menu (including its full-screen phone overlay) keep
+    // their own clicks
+    const own = (t: EventTarget | null) => t instanceof Element && t.closest('button, a, .tv-projects, .navbar') !== null;
     const onClick = (e: MouseEvent) => {
       if (own(e.target)) return;
       if (tvZoomRef.current) setTvZoom(false);
