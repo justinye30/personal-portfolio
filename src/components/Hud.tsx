@@ -8,10 +8,12 @@ interface HudProps {
   // look-around toggle: offered only once the camera has come to a full stop
   canView: boolean;
   viewing: boolean;
+  // zoomed in on the cabin TV: the toggle becomes the way back out
+  tvZoom: boolean;
   onToggleView: () => void;
 }
 
-function Hud({ active, onNavigate, canView, viewing, onToggleView }: HudProps) {
+function Hud({ active, onNavigate, canView, viewing, tvZoom, onToggleView }: HudProps) {
   return (
     <>
       <Navbar active={active} onNavigate={onNavigate} />
@@ -41,8 +43,8 @@ function Hud({ active, onNavigate, canView, viewing, onToggleView }: HudProps) {
           <button
             type="button"
             className={`hud-view ${canView || viewing ? 'available' : ''} ${viewing ? 'viewing' : ''}`}
-            aria-label={viewing ? 'Exit look around' : 'Look around'}
-            title={viewing ? 'Exit look around (Esc)' : 'Look around'}
+            aria-label={tvZoom ? 'Zoom out from the TV' : viewing ? 'Exit look around' : 'Look around'}
+            title={tvZoom ? 'Zoom out (Esc)' : viewing ? 'Exit look around (Esc)' : 'Look around'}
             disabled={!canView && !viewing}
             onClick={onToggleView}
           >

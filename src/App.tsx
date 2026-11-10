@@ -10,6 +10,7 @@ import type { World } from './world/World';
 type Status = 'loading' | 'ready' | 'fallback';
 
 const LAST = SECTIONS.length - 1;
+const PROJECTS = SECTIONS.findIndex((s) => s.id === 'projects');
 // keep the loading screen up a little after the world is ready, so it doesn't flash by
 const LOADER_HOLD_MS = 500;
 // brief pause after the reveal starts before the camera sets off toward the first stop
@@ -94,6 +95,9 @@ function App() {
   const [grabbing, setGrabbing] = useState(false);
   // project the cabin TV is showing
   const [preview, setPreview] = useState<number | null>(null);
+  // zoomed in on the cabin TV (text hidden; click, Esc or ✕ to come back out)
+  const [tvZoom, setTvZoomState] = useState(false);
+  const [tvHover, setTvHover] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<World | null>(null);
@@ -105,6 +109,13 @@ function App() {
   const pending = useRef<number | null>(null);
   const navigateRef = useRef<(next: number) => void>(() => {});
   const viewingRef = useRef(false);
+  const tvZoomRef = useRef(false);
+
+  const setTvZoom = useCallback((on: boolean) => {
+    tvZoomRef.current = on;
+    setTvZoomState(on);
+    worldRef.current?.setTvFocus(on);
+  }, []);
 
   useEffect(() => {
     let disposed = false;
@@ -173,6 +184,8 @@ function App() {
     }
     // already there, or already on the way
     if (next === activeRef.current) return;
+    // (the world flies out from wherever the TV zoom has got to)
+    if (tvZoomRef.current) setTvZoom(false);
     activeRef.current = next;
     setActive(next);
     const { pathname, search } = window.location;
@@ -196,7 +209,7 @@ function App() {
         setSettled(true);
       },
     });
-  }, []);
+  }, [setTvZoom]);
 
   useEffect(() => {
     navigateRef.current = navigate;
@@ -248,6 +261,10 @@ function App() {
     const onKey = (e: KeyboardEvent) => {
       if (viewingRef.current) {
         if (e.key === 'Escape') setView(false);
+        return;
+      }
+      if (tvZoomRef.current && e.key === 'Escape') {
+        setTvZoom(false);
         return;
       }
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -309,7 +326,7 @@ function App() {
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('hashchange', onHash);
     };
-  }, [navigate, setView]);
+  }, [navigate, setView, setTvZoom]);
 
   // look-around: drag (mouse) or swipe (touch) anywhere to turn the camera
   useEffect(() => {
@@ -347,6 +364,31 @@ function App() {
     };
   }, [viewing]);
 
+  // in the cabin: click the TV to zoom in on it (pointing at it shows a zoom cursor), and
+  // click anywhere to come back out
+  const atCabin = active === PROJECTS && settled && status === 'ready' && !viewing;
+  useEffect(() => {
+    if (!atCabin) return;
+    // the project list and controls keep their own clicks
+    const own = (t: EventTarget | null) => t instanceof Element && t.closest('button, a, .tv-projects') !== null;
+    const onClick = (e: MouseEvent) => {
+      if (own(e.target)) return;
+      if (tvZoomRef.current) setTvZoom(false);
+      else if (worldRef.current?.hitTv(e.clientX, e.clientY)) setTvZoom(true);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      setTvHover(!tvZoomRef.current && !own(e.target) && !!worldRef.current?.hitTv(e.clientX, e.clientY));
+    };
+    window.addEventListener('click', onClick);
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('click', onClick);
+      window.removeEventListener('pointermove', onMove);
+      setTvHover(false);
+    };
+  }, [atCabin, setTvZoom]);
+
   const previewProject = useCallback((index: number) => {
     if (viewingRef.current) return;
     setPreview(index);
@@ -356,7 +398,7 @@ function App() {
 
   return (
     <div
-      className={`app status-${status} ${travelling ? 'is-travelling' : ''} ${viewing ? 'is-viewing' : ''} ${grabbing ? 'is-grabbing' : ''}`}
+      className={`app status-${status} ${travelling ? 'is-travelling' : ''} ${viewing ? 'is-viewing' : ''} ${grabbing ? 'is-grabbing' : ''} ${tvZoom ? 'is-tv-zoom' : ''} ${tvHover && !tvZoom ? 'is-tv-hover' : ''}`}
     >
       <div className="world" ref={containerRef} aria-hidden="true" />
       <div className="world-shade" aria-hidden="true" />
@@ -366,13 +408,14 @@ function App() {
         active={active}
         onNavigate={navigateQueued}
         canView={status === 'ready' && settled}
-        viewing={viewing}
-        onToggleView={toggleView}
+        viewing={viewing || tvZoom}
+        tvZoom={tvZoom}
+        onToggleView={tvZoom ? () => setTvZoom(false) : toggleView}
       />
 
       <main className="stages">
         {SECTIONS.map((s, i) => (
-          <Stage key={s.id} id={s.id} shown={shown === i} hidden={viewing}>
+          <Stage key={s.id} id={s.id} shown={shown === i} hidden={viewing || tvZoom}>
             {stages[i]}
           </Stage>
         ))}

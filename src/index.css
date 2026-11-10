@@ -443,7 +443,8 @@ kbd {
 
 /* the shown stage sets its own visibility, so it is hidden directly (otherwise it would
    stay hoverable and scrollable while invisible) */
-.is-viewing :is(.stages, .stage.is-shown, .navbar, .hud-progress, .hud-arrows) {
+.is-viewing :is(.stages, .stage.is-shown, .navbar, .hud-progress, .hud-arrows),
+.is-tv-zoom :is(.stages, .stage.is-shown, .navbar, .hud-progress, .hud-arrows) {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.35s ease, visibility 0s linear 0.35s;
@@ -458,6 +459,15 @@ kbd {
 
 .is-viewing.is-grabbing {
   cursor: grabbing;
+}
+
+/* the cabin TV: click to zoom in on it, click anywhere to zoom back out */
+.is-tv-hover {
+  cursor: zoom-in;
+}
+
+.is-tv-zoom {
+  cursor: zoom-out;
 }
 
 /* phones only: tap targets for moving between locations */
@@ -556,6 +566,7 @@ kbd {
   font-size: clamp(40px, 5.4vw, 88px);
   letter-spacing: -0.005em;
   white-space: nowrap;
+  text-shadow: 0 2px 4px rgba(20, 10, 36, 0.4), 0 4px 28px rgba(20, 10, 36, 0.45);
 }
 
 .hero-sub {
@@ -565,7 +576,7 @@ kbd {
   font-weight: 500;
   line-height: 1.8;
   color: var(--ink);
-  text-shadow: 0 1px 2px rgba(30, 16, 54, 0.35), 0 2px 16px rgba(30, 16, 54, 0.5);
+  text-shadow: 0 1px 2px rgba(20, 10, 36, 0.75), 0 1px 8px rgba(20, 10, 36, 0.5), 0 2px 20px rgba(20, 10, 36, 0.45);
 }
 
 /* ── projects: a list beside the cabin TV, styled after ysu.dev ── */

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Reflector } from 'three/examples/jsm/objects/Reflector.js';
-import { CAMP, FOREST_CLEARING, STONES, heightAt } from './layout';
+import { TV, tvScreenLocal } from './cabin';
+import { CAMP, FOREST_CLEARING, STONES, cabinToWorld, heightAt } from './layout';
 import { createParticles } from './particles';
 import { createProps } from './props';
 import { CABIN_SHOT, CONTACT_SHOT, SHOTS, type Shot } from './shots';
@@ -154,6 +155,17 @@ const CRUISE_PITCH = -0.14;
 // look-around mode can tilt this far up or down from level
 const MAX_LOOK_PITCH = THREE.MathUtils.degToRad(75);
 
+// Clicking the cabin TV glides the camera in to face the screen head-on, with the screen
+// filling this much of the view (in whichever direction runs out first).
+const TV_CENTER = new THREE.Vector3(...cabinToWorld(...tvScreenLocal().pos));
+const TV_NORMAL = (() => {
+  const { pos, normal } = tvScreenLocal();
+  const ahead = cabinToWorld(pos[0] + normal[0], pos[1], pos[2] + normal[2]);
+  return new THREE.Vector3(...ahead).sub(TV_CENTER).normalize();
+})();
+const TV_FILL = 0.82;
+const TV_ZOOM_TIME = 0.9;
+
 export class World {
   readonly renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
@@ -165,6 +177,12 @@ export class World {
   private updateProps: (t: number, doorOpen: number) => void;
   private stars: ReturnType<typeof createStars>;
   private tv: ReturnType<typeof createTv>;
+  private tvScreen: THREE.Mesh;
+  // zoomed in on the TV: wanted, and progress toward it (0 → 1)
+  private tvFocus = false;
+  private tvBlend = 0;
+  private raycaster = new THREE.Raycaster();
+  private ndc = new THREE.Vector2();
   private doorOpen = 0;
   private night = 0;
   private smoothDir = new THREE.Vector3();
@@ -272,6 +290,7 @@ export class World {
     const props = createProps();
     scene.add(props.group);
     this.updateProps = props.update;
+    this.tvScreen = props.tvScreen;
     this.tv = createTv(props.tvScreen);
 
     const pu = this.particleUniforms;
@@ -415,6 +434,27 @@ export class World {
     this.lookPitch = THREE.MathUtils.clamp(this.lookPitch + dy * k, -MAX_LOOK_PITCH - base, MAX_LOOK_PITCH - base);
   }
 
+  /** Is the cabin TV screen under this point on the page (while parked in the cabin)? */
+  hitTv(clientX: number, clientY: number) {
+    if (this.travel || this.index !== CABIN_SHOT) return false;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    this.raycaster.setFromCamera(this.ndc, this.camera);
+    return this.raycaster.intersectObject(this.tvScreen, false).length > 0;
+  }
+
+  /** Glide in to face the TV screen (or back out to the framed view). */
+  setTvFocus(on: boolean) {
+    this.tvFocus = on && !this.travel && this.index === CABIN_SHOT;
+    if (this.tvFocus) this.looking = false;
+  }
+
+  // distance from the screen at which it fills TV_FILL of the view
+  private tvDistance() {
+    const t = Math.tan(THREE.MathUtils.degToRad(this.baseFov) / 2) * TV_FILL;
+    return Math.max(TV.h / 2 / t, TV.w / 2 / (t * this.camera.aspect));
+  }
+
   /** Tune the cabin TV to a project (or back to the idle screen with null). */
   showProject(index: number | null) {
     this.tv.show(index);
@@ -431,7 +471,8 @@ export class World {
   }
 
   private startTravel(index: number, cb: TravelCallbacks, duration: number | undefined) {
-    const interrupted = this.travel !== null;
+    // (leaving while zoomed in on the TV starts from wherever the camera is, like a redirect)
+    const interrupted = this.travel !== null || this.tvBlend > 0;
     const from = interrupted ? this.snapshotPose() : this.current;
     const fromIndex = this.index;
     const to = this.poses[index];
@@ -439,6 +480,8 @@ export class World {
     this.looking = false;
     this.lookYaw = 0;
     this.lookPitch = 0;
+    this.tvFocus = false;
+    this.tvBlend = 0;
     if (fromIndex === CABIN_SHOT && index !== CABIN_SHOT) this.tv.show(null);
 
     if (duration === 0) {
@@ -561,6 +604,9 @@ export class World {
       if (Math.abs(this.lookYaw) + Math.abs(this.lookPitch) < 1e-4) this.lookYaw = this.lookPitch = 0;
     }
 
+    this.tvBlend = clamp01(this.tvBlend + ((this.tvFocus ? 1 : -1) * realDt) / TV_ZOOM_TIME);
+    const tvZoom = easeInOutSine(this.tvBlend);
+
     const cam = this.camera;
     const pos = this.tmpPos;
     const look = this.tmpLook;
@@ -630,11 +676,18 @@ export class World {
         const cp = Math.cos(pitch);
         dir.set(Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp);
       }
-      // centre the projection while looking around; the text it made room for is hidden
-      this.tmpOff.copy(this.current.offset).multiplyScalar(1 - this.lookBlend);
+      if (tvZoom > 0) {
+        const d = this.tvDistance();
+        pos.lerp(this.tmpA.copy(TV_CENTER).addScaledVector(TV_NORMAL, d), tvZoom);
+        slerpDir(dir, dir.clone(), this.tmpB.copy(TV_NORMAL).negate(), tvZoom);
+        lookDist = THREE.MathUtils.lerp(lookDist, d, tvZoom);
+      }
+      // centre the projection while looking around or at the TV; the text it made room for is hidden
+      this.tmpOff.copy(this.current.offset).multiplyScalar((1 - this.lookBlend) * (1 - tvZoom));
     }
 
-    // gentle hover + pointer parallax
+    // gentle hover + pointer parallax (held still while zoomed in on the TV)
+    idle *= 1 - tvZoom;
     const sway = Math.min(lookDist * 0.01, 0.9) * idle;
     pos.x += Math.sin(t * 0.21) * sway;
     pos.y += Math.sin(t * 0.33) * sway * 0.5;
