@@ -1,15 +1,15 @@
 import dishlyImg from './assets/img-dishly.webp';
 import dogginAroundImg from './assets/img-doggin-around.webp';
 import pixlrImg from './assets/img-pixlr.webp';
-import smartReaderImg from './assets/img-smart-reader.webp';
 import treatopsImg from './assets/img-treatops.webp';
 import ubcAdvisorImg from './assets/img-ubc-advisor.webp';
+import younifyImg from './assets/img-younify.webp';
 import dishlyVideo from './assets/vid-dishly.mp4';
 import dogginAroundVideo from './assets/vid-doggin-around.mp4';
 import pixlrVideo from './assets/vid-pixlr.mp4';
-import smartReaderVideo from './assets/vid-smart-reader.mp4';
 import treatopsVideo from './assets/vid-treatops.mp4';
 import ubcAdvisorVideo from './assets/vid-ubc-advisor.mp4';
+import younifyVideo from './assets/vid-younify.mp4';
 import developforgood from './assets/logo-develop-for-good.webp';
 import sharkbyte from './assets/logo-sharkbyte.webp';
 
@@ -45,6 +45,15 @@ export const projectData: Project[] = [
     videoUrl: ubcAdvisorVideo,
   },
   {
+    id: 8,
+    title: "Younify",
+    description: "Multiplayer 3D world with vector-matched teams",
+    tags: ["TypeScript", "R3F", "Socket.IO", "Gemini API", "PostgreSQL", "pgvector"],
+    githubUrl: "https://github.com/justinye30/younify",
+    imageUrl: younifyImg,
+    videoUrl: younifyVideo,
+  },
+  {
     id: 7,
     title: "TreatOps",
     description: "Real-time CV system with talking ESP32 plushie",
@@ -70,15 +79,6 @@ export const projectData: Project[] = [
     githubUrl: "https://github.com/cuhacking-dishly/CU-Hack",
     imageUrl: dishlyImg,
     videoUrl: dishlyVideo,
-  },
-  {
-    id: 4,
-    title: "Smart Reader",
-    description: "Web extension to enhance accessibility",
-    tags: ["JavaScript"],
-    githubUrl: "https://github.com/justinye30/Simple-Accesibility-Extension",
-    imageUrl: smartReaderImg,
-    videoUrl: smartReaderVideo,
   },
 ];
 
